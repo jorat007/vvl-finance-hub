@@ -28,7 +28,7 @@ export interface Payment {
   remarks: string | null;
   promised_date: string | null;
   created_at: string;
-  customers?: Customer;
+  customers?: Pick<Customer, 'id' | 'name' | 'area'>;
 }
 
 export interface CustomerWithBalance extends Customer {
