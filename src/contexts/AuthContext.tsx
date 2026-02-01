@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (mobile: string, password: string) => {
     try {
       // Format mobile as email for Supabase auth
-      const email = `${mobile.replace(/\D/g, '')}@vvl.local`;
+      const email = `${mobile.replace(/\D/g, '')}@vvlenterprises.in`;
       
       const { error } = await supabase.auth.signInWithPassword({
         email,
