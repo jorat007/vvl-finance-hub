@@ -295,7 +295,7 @@ export default function PaymentFormPage() {
               <h3 className="font-semibold text-foreground">Additional Details</h3>
 
                <div className="space-y-2">
-                <Label>Promised to Pay Date</Label>
+                <Label>Promised to Pay On</Label>
                 <Input
                   type="date"
                   value={formData.promised_date}
