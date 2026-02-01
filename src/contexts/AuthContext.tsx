@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (mobile: string, password: string, name: string, userRole: AppRole = 'agent') => {
     try {
       const cleanMobile = mobile.replace(/\D/g, '');
-      const email = `${cleanMobile}@vvl.local`;
+      const email = `${cleanMobile}@vvlenterprises.in`;
       const redirectUrl = `${window.location.origin}/`;
 
       const { error } = await supabase.auth.signUp({
