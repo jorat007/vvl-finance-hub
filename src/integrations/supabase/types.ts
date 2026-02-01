@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           area: string
@@ -21,7 +60,10 @@ export type Database = {
           created_at: string
           created_by: string
           daily_amount: number
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
+          is_deleted: boolean | null
           loan_amount: number
           mobile: string
           name: string
@@ -35,7 +77,10 @@ export type Database = {
           created_at?: string
           created_by: string
           daily_amount?: number
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
+          is_deleted?: boolean | null
           loan_amount?: number
           mobile: string
           name: string
@@ -49,7 +94,10 @@ export type Database = {
           created_at?: string
           created_by?: string
           daily_amount?: number
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
+          is_deleted?: boolean | null
           loan_amount?: number
           mobile?: string
           name?: string
@@ -66,7 +114,10 @@ export type Database = {
           created_at: string
           customer_id: string
           date: string
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
+          is_deleted: boolean | null
           mode: string
           promised_date: string | null
           remarks: string | null
@@ -78,7 +129,10 @@ export type Database = {
           created_at?: string
           customer_id: string
           date?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
+          is_deleted?: boolean | null
           mode?: string
           promised_date?: string | null
           remarks?: string | null
@@ -90,7 +144,10 @@ export type Database = {
           created_at?: string
           customer_id?: string
           date?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
+          is_deleted?: boolean | null
           mode?: string
           promised_date?: string | null
           remarks?: string | null
@@ -109,7 +166,10 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
+          is_deleted: boolean | null
           mobile: string
           name: string
           updated_at: string
@@ -117,7 +177,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
+          is_deleted?: boolean | null
           mobile: string
           name: string
           updated_at?: string
@@ -125,7 +188,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
+          is_deleted?: boolean | null
           mobile?: string
           name?: string
           updated_at?: string
@@ -162,6 +228,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_agent_daily_stats: {
+        Args: { p_date?: string }
+        Returns: {
+          agent_id: string
+          agent_name: string
+          customer_count: number
+          not_paid_count: number
+          paid_count: number
+          total_collected: number
+          total_pending: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -171,6 +249,24 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      log_audit: {
+        Args: {
+          p_action: string
+          p_new_data?: Json
+          p_old_data?: Json
+          p_record_id: string
+          p_table_name: string
+        }
+        Returns: string
+      }
+      restore_record: {
+        Args: { p_record_id: string; p_table_name: string }
+        Returns: boolean
+      }
+      soft_delete: {
+        Args: { p_record_id: string; p_table_name: string }
         Returns: boolean
       }
     }
