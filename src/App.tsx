@@ -15,6 +15,7 @@ import CustomerFormPage from "./pages/CustomerFormPage";
 import PaymentFormPage from "./pages/PaymentFormPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,6 +70,11 @@ const App = () => (
             <Route path="/settings" element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminPage />
               </ProtectedRoute>
             } />
             
