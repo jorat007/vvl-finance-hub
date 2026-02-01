@@ -35,7 +35,8 @@ export function SummaryCard({ title, value, icon: Icon, variant = 'default', sub
               variant === 'default' ? 'text-foreground' : 'text-white'
             )}
           >
-            {typeof value === 'number' ? `₹${value.toLocaleString('en-IN')}` : value}
+         
+             {title != "Total Customers" ? `₹${value.toLocaleString('en-IN')}` : value}
           </p>
           {subtitle && (
             <p
