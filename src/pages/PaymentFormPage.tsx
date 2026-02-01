@@ -294,6 +294,16 @@ export default function PaymentFormPage() {
             <div className="form-section space-y-4 animate-fade-in">
               <h3 className="font-semibold text-foreground">Additional Details</h3>
 
+               <div className="space-y-2">
+                <Label>Promised to Pay Date</Label>
+                <Input
+                  type="date"
+                  value={formData.promised_date}
+                  onChange={(e) => setFormData({ ...formData, promised_date: e.target.value })}
+                  className="touch-input"
+                />
+              </div>
+              
               <div className="space-y-2">
                 <Label>Remarks</Label>
                 <Textarea
@@ -304,16 +314,7 @@ export default function PaymentFormPage() {
                 />
                 {errors.remarks && <p className="text-destructive text-sm">{errors.remarks}</p>}
               </div>
-
-              <div className="space-y-2">
-                <Label>Promised to Pay Date</Label>
-                <Input
-                  type="date"
-                  value={formData.promised_date}
-                  onChange={(e) => setFormData({ ...formData, promised_date: e.target.value })}
-                  className="touch-input"
-                />
-              </div>
+ 
             </div>
           )}
 
