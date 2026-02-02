@@ -6,6 +6,7 @@ import { Search, Plus, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyCustomersIllustration } from '@/components/illustrations';
 import {
   Select,
   SelectContent,
@@ -67,13 +68,19 @@ export default function CustomersPage() {
             ))
           ) : filteredCustomers?.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No customers found</p>
+              <div className="text-primary mb-4">
+                <EmptyCustomersIllustration />
+              </div>
+              <p className="text-lg font-medium text-foreground mb-1">No customers found</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                {search ? 'Try a different search term' : 'Start by adding your first customer'}
+              </p>
               <Link
                 to="/customers/new"
-                className="inline-flex items-center gap-2 mt-4 text-primary font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Add your first customer
+                Add Customer
               </Link>
             </div>
           ) : (
