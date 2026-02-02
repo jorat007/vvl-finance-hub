@@ -46,7 +46,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/customers/new" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAdmin={true}>
                   <CustomerFormPage />
                 </ProtectedRoute>
               } />
@@ -76,7 +76,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAdmin={true}>
                   <AdminPage />
                 </ProtectedRoute>
               } />
