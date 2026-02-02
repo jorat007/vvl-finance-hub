@@ -96,7 +96,7 @@ export default function AboutPage() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Project Owner</p>
-              <h3 className="text-lg font-bold text-foreground">Elavarasan Thiyagarajan</h3>
+              <h3 className="text-lg font-bold text-foreground">Mr. </h3>
               <p className="text-sm text-muted-foreground mt-1">
                 VVL Enterprises • TN-02-0194510
               </p>
