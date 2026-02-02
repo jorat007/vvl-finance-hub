@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, BarChart3, Settings, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, BarChart3, Settings, Shield, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
 const baseNavItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/dashboard', label: 'Home', icon: LayoutDashboard },
   { path: '/customers', label: 'Customers', icon: Users },
   { path: '/payments/new', label: 'Payment', icon: CreditCard },
   { path: '/reports', label: 'Reports', icon: BarChart3 },

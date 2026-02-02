@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { MobileNav } from './MobileNav';
+import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,10 +12,10 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children, title }: MainLayoutProps) {
-  const { signOut, user, role } = useAuth();
+  const { signOut, role } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background transition-colors duration-300">
       {/* Header */}
       <header className="page-header">
         <div className="flex items-center justify-between">
@@ -29,7 +30,10 @@ export function MainLayout({ children, title }: MainLayoutProps) {
               <p className="text-xs text-muted-foreground">VVL Enterprises</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+            
             <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium capitalize">
               {role}
             </span>
