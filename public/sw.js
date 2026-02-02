@@ -1,4 +1,5 @@
-const CACHE_NAME = 'vvl-crm-v1';
+// NOTE: Bump this version whenever caching behavior changes.
+const CACHE_NAME = 'vvl-crm-v2';
 const urlsToCache = [
   '/',
   '/index.html',

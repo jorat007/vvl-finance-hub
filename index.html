@@ -24,15 +24,38 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+    <script type="module">
+      // In dev/preview, a Service Worker can cache Vite runtime chunks and cause
+      // duplicate React instances ("Invalid hook call" / useRef/useEffect on null).
+      const isProd = import.meta.env.PROD;
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", async () => {
+          if (!isProd) {
+            try {
+              const regs = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(regs.map((r) => r.unregister()));
+              if ("caches" in window) {
+                const keys = await caches.keys();
+                await Promise.all(
+                  keys
+                    .filter((k) => k.startsWith("vvl-crm-"))
+                    .map((k) => caches.delete(k))
+                );
+              }
+            } catch {
+              // ignore
+            }
+            return;
+          }
+
+          navigator.serviceWorker
+            .register("/sw.js")
             .then((registration) => {
-              console.log('SW registered:', registration.scope);
+              console.log("SW registered:", registration.scope);
             })
             .catch((error) => {
-              console.log('SW registration failed:', error);
+              console.log("SW registration failed:", error);
             });
         });
       }
