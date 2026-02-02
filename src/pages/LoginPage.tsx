@@ -128,20 +128,7 @@ export default function LoginPage() {
             : 'radial-gradient(ellipse at top, hsl(217 91% 60% / 0.2) 0%, transparent 50%), radial-gradient(ellipse at bottom right, hsl(142 71% 45% / 0.15) 0%, transparent 50%)'
         }}
       />
-
-      {/* Theme toggle button */}
-      <button
-        onClick={toggleTheme}
-        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shadow-md transition-all hover:scale-105"
-        aria-label="Toggle theme"
-      >
-        {theme === 'dark' ? (
-          <Sun className="w-5 h-5 text-warning" />
-        ) : (
-          <Moon className="w-5 h-5 text-primary" />
-        )}
-      </button>
-
+ 
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header Section */}
         <div className="flex-shrink-0 pt-12 pb-6 px-6 text-center">
