@@ -34,12 +34,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (error) {
-        console.error('Error fetching role:', error);
+        // Only log in development to avoid information leakage
+        if (import.meta.env.DEV) {
+          console.error('Error fetching role:', error);
+        }
         return null;
       }
       return data?.role as AppRole;
     } catch (err) {
-      console.error('Error in fetchUserRole:', err);
+      // Only log in development to avoid information leakage
+      if (import.meta.env.DEV) {
+        console.error('Error in fetchUserRole:', err);
+      }
       return null;
     }
   };

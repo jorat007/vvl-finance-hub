@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MainLayout } from '@/components/MainLayout';
 import { CustomerCard } from '@/components/CustomerCard';
 import { useCustomers } from '@/hooks/useData';
+import { useAuth } from '@/contexts/AuthContext';
 import { Search, Plus, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
@@ -19,6 +20,7 @@ export default function CustomersPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const { data: customers, isLoading } = useCustomers();
+  const { isAdmin } = useAuth();
 
   const filteredCustomers = customers?.filter((customer) => {
     const matchesSearch =
@@ -73,15 +75,17 @@ export default function CustomersPage() {
               </div>
               <p className="text-lg font-medium text-foreground mb-1">No customers found</p>
               <p className="text-sm text-muted-foreground mb-4">
-                {search ? 'Try a different search term' : 'Start by adding your first customer'}
+                {search ? 'Try a different search term' : isAdmin ? 'Start by adding your first customer' : 'No customers assigned to you yet'}
               </p>
-              <Link
-                to="/customers/new"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add Customer
-              </Link>
+              {isAdmin && (
+                <Link
+                  to="/customers/new"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Customer
+                </Link>
+              )}
             </div>
           ) : (
             filteredCustomers?.map((customer) => (
@@ -91,10 +95,12 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* Floating Action Button */}
-      <Link to="/customers/new" className="fab text-white">
-        <Plus className="w-6 h-6" />
-      </Link>
+      {/* Floating Action Button - Only visible to admins */}
+      {isAdmin && (
+        <Link to="/customers/new" className="fab text-white">
+          <Plus className="w-6 h-6" />
+        </Link>
+      )}
     </MainLayout>
   );
 }
