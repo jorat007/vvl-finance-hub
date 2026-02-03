@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '@/components/MainLayout';
 import { useCreateCustomer, useUpdateCustomer, useCustomerWithBalance } from '@/hooks/useData';
+import { useAgents } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissionChecker } from '@/hooks/usePermissions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,27 +34,43 @@ export default function CustomerFormPage() {
   const isEdit = !!id;
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isAdmin, isManager } = useAuth();
+  const checkPermission = usePermissionChecker();
 
   const { data: existingCustomer } = useCustomerWithBalance(id);
+  const { data: agents } = useAgents();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
 
-  const [formData, setFormData] = useState({
-    name: existingCustomer?.name || '',
-    mobile: existingCustomer?.mobile || '',
-    area: existingCustomer?.area || '',
-    loan_amount: existingCustomer?.loan_amount?.toString() || '',
-    daily_amount: existingCustomer?.daily_amount?.toString() || '',
-    start_date: existingCustomer?.start_date || new Date().toISOString().split('T')[0],
-    status: existingCustomer?.status || 'active' as const,
+  // Get agents only (not admins/managers for assignment)
+  const agentsList = agents?.filter((a) => a.role === 'agent' && a.is_active) || [];
+  const allAssignableUsers = agents?.filter((a) => a.is_active) || [];
+
+  const [formData, setFormData] = useState<{
+    name: string;
+    mobile: string;
+    area: string;
+    loan_amount: string;
+    daily_amount: string;
+    start_date: string;
+    status: 'active' | 'closed' | 'defaulted';
+    assigned_agent_id: string;
+  }>({
+    name: '',
+    mobile: '',
+    area: '',
+    loan_amount: '',
+    daily_amount: '',
+    start_date: new Date().toISOString().split('T')[0],
+    status: 'active',
+    assigned_agent_id: user?.id || '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   // Update form when existing customer loads
-  useState(() => {
+  useEffect(() => {
     if (existingCustomer) {
       setFormData({
         name: existingCustomer.name,
@@ -62,9 +80,10 @@ export default function CustomerFormPage() {
         daily_amount: existingCustomer.daily_amount.toString(),
         start_date: existingCustomer.start_date,
         status: existingCustomer.status,
+        assigned_agent_id: existingCustomer.assigned_agent_id || user?.id || '',
       });
     }
-  });
+  }, [existingCustomer, user?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +115,7 @@ export default function CustomerFormPage() {
         daily_amount: parseFloat(formData.daily_amount),
         start_date: formData.start_date,
         status: formData.status,
-        assigned_agent_id: user?.id || null,
+        assigned_agent_id: formData.assigned_agent_id || user?.id || null,
       };
 
       if (isEdit) {
@@ -123,6 +142,8 @@ export default function CustomerFormPage() {
       setLoading(false);
     }
   };
+
+  const canAssignAgent = isAdmin || isManager;
 
   return (
     <MainLayout title={isEdit ? 'Edit Customer' : 'Add Customer'}>
@@ -176,6 +197,34 @@ export default function CustomerFormPage() {
               />
               {errors.area && <p className="text-destructive text-sm">{errors.area}</p>}
             </div>
+
+            {/* Agent Allocation - Only visible to Admin/Manager */}
+            {canAssignAgent && (
+              <div className="space-y-2">
+                <Label>Assign to Agent</Label>
+                <Select
+                  value={formData.assigned_agent_id || 'admin'}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, assigned_agent_id: value === 'admin' ? '' : value })
+                  }
+                >
+                  <SelectTrigger className="touch-input">
+                    <SelectValue placeholder="Select agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin (Default)</SelectItem>
+                    {allAssignableUsers.map((agent) => (
+                      <SelectItem key={agent.user_id} value={agent.user_id}>
+                        {agent.name} ({agent.role})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  If no agent selected, customer will be assigned to Admin
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="form-section space-y-4">

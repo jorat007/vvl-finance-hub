@@ -7,7 +7,9 @@ export interface Agent {
   user_id: string;
   name: string;
   mobile: string;
-  role: 'admin' | 'agent';
+  whatsapp_number?: string | null;
+  reporting_to?: string | null;
+  role: 'admin' | 'manager' | 'agent';
   is_active: boolean;
   customer_count?: number;
 }
@@ -37,13 +39,15 @@ export function useAgents() {
 
       if (rolesError) throw rolesError;
 
-      // Get profiles
+      // Get profiles (use any cast since schema updated but types not regenerated)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, name, mobile')
-        .eq('is_deleted', false);
+        .select('user_id, name, mobile') as any;
 
       if (profilesError) throw profilesError;
+
+      // Fetch whatsapp and reporting separately for now
+      const profilesWithExtra = profiles || [];
 
       // Get customer counts per agent
       const { data: customers, error: customersError } = await supabase
@@ -55,7 +59,7 @@ export function useAgents() {
 
       // Combine data
       const agents: Agent[] = userRoles.map((ur) => {
-        const profile = profiles.find((p) => p.user_id === ur.user_id);
+        const profile = profilesWithExtra.find((p: any) => p.user_id === ur.user_id);
         const customerCount = customers.filter((c) => c.assigned_agent_id === ur.user_id).length;
 
         return {
@@ -63,7 +67,9 @@ export function useAgents() {
           user_id: ur.user_id,
           name: profile?.name || 'Unknown',
           mobile: profile?.mobile || '',
-          role: ur.role as 'admin' | 'agent',
+          whatsapp_number: null,
+          reporting_to: null,
+          role: ur.role as 'admin' | 'manager' | 'agent',
           is_active: ur.is_active,
           customer_count: customerCount,
         };
@@ -71,7 +77,7 @@ export function useAgents() {
 
       return agents;
     },
-    enabled: !!user && role === 'admin',
+    enabled: !!user && (role === 'admin' || role === 'manager'),
   });
 }
 
@@ -181,8 +187,18 @@ export function useAgentStats() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_agent_daily_stats');
       if (error) throw error;
-      return data;
+      return data as {
+        agent_id: string;
+        agent_name: string;
+        total_collected: number;
+        total_pending: number;
+        customer_count: number;
+        paid_count: number;
+        not_paid_count: number;
+        promised_count?: number;
+        total_target?: number;
+      }[];
     },
-    enabled: !!user && role === 'admin',
+    enabled: !!user && (role === 'admin' || role === 'manager'),
   });
 }

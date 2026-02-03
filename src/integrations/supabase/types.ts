@@ -236,8 +236,10 @@ export type Database = {
           customer_count: number
           not_paid_count: number
           paid_count: number
+          promised_count: number
           total_collected: number
           total_pending: number
+          total_target: number
         }[]
       }
       get_user_role: {

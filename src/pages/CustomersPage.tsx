@@ -3,6 +3,7 @@ import { MainLayout } from '@/components/MainLayout';
 import { CustomerCard } from '@/components/CustomerCard';
 import { useCustomers } from '@/hooks/useData';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissionChecker } from '@/hooks/usePermissions';
 import { Search, Plus, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
@@ -20,7 +21,10 @@ export default function CustomersPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const { data: customers, isLoading } = useCustomers();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isManager } = useAuth();
+  const checkPermission = usePermissionChecker();
+  
+  const canCreateCustomer = isAdmin || isManager || checkPermission('customer_create');
 
   const filteredCustomers = customers?.filter((customer) => {
     const matchesSearch =
@@ -75,9 +79,9 @@ export default function CustomersPage() {
               </div>
               <p className="text-lg font-medium text-foreground mb-1">No customers found</p>
               <p className="text-sm text-muted-foreground mb-4">
-                {search ? 'Try a different search term' : isAdmin ? 'Start by adding your first customer' : 'No customers assigned to you yet'}
+                {search ? 'Try a different search term' : canCreateCustomer ? 'Start by adding your first customer' : 'No customers assigned to you yet'}
               </p>
-              {isAdmin && (
+              {canCreateCustomer && (
                 <Link
                   to="/customers/new"
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
@@ -95,8 +99,8 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* Floating Action Button - Only visible to admins */}
-      {isAdmin && (
+      {/* Floating Action Button - Only visible to users with create permission */}
+      {canCreateCustomer && (
         <Link to="/customers/new" className="fab text-white">
           <Plus className="w-6 h-6" />
         </Link>
