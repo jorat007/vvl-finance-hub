@@ -1,4 +1,4 @@
-import { User, IndianRupee, Users, CheckCircle, XCircle } from 'lucide-react';
+import { User, IndianRupee, Users, CheckCircle, XCircle, Clock, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 
@@ -10,6 +10,8 @@ interface AgentStats {
   customer_count: number;
   paid_count: number;
   not_paid_count: number;
+  promised_count?: number;
+  total_target?: number;
 }
 
 interface AgentPerformanceCardProps {
@@ -44,6 +46,7 @@ export function AgentPerformanceCard({ agents, isLoading }: AgentPerformanceCard
   }
 
   const totalCollected = agents.reduce((sum, a) => sum + Number(a.total_collected), 0);
+  const totalTarget = agents.reduce((sum, a) => sum + Number(a.total_target || 0), 0);
 
   return (
     <div className="form-section">
@@ -52,15 +55,29 @@ export function AgentPerformanceCard({ agents, isLoading }: AgentPerformanceCard
           <User className="w-5 h-5 text-primary" />
           Agent Performance - Today
         </h3>
-        <span className="text-sm text-muted-foreground">
-          Total: ₹{totalCollected.toLocaleString('en-IN')}
-        </span>
+        <div className="text-right">
+          <span className="text-sm text-success font-medium">
+            ₹{totalCollected.toLocaleString('en-IN')}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {' '}/ ₹{totalTarget.toLocaleString('en-IN')}
+          </span>
+        </div>
       </div>
 
       <div className="space-y-4">
         {agents.map((agent) => {
-          const total = Number(agent.total_collected) + Number(agent.total_pending);
-          const percent = total > 0 ? (Number(agent.total_collected) / total) * 100 : 0;
+          const target = Number(agent.total_target || 0);
+          const collected = Number(agent.total_collected);
+          const percentByAmount = target > 0 ? (collected / target) * 100 : 0;
+          
+          // Calculate customer completion percentage
+          const totalCustomers = Number(agent.customer_count || 0);
+          const attendedCustomers = Number(agent.paid_count || 0) + Number(agent.not_paid_count || 0);
+          const percentByCount = totalCustomers > 0 ? (attendedCustomers / totalCustomers) * 100 : 0;
+          
+          const promisedCount = Number(agent.promised_count || 0);
+          const pendingToVisit = totalCustomers - attendedCustomers;
 
           return (
             <div
@@ -76,35 +93,71 @@ export function AgentPerformanceCard({ agents, isLoading }: AgentPerformanceCard
                     <p className="font-semibold text-foreground">{agent.agent_name}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                       <Users className="w-3 h-3" />
-                      {agent.customer_count} customers
+                      {totalCustomers} customers assigned
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-success flex items-center gap-1">
                     <IndianRupee className="w-4 h-4" />
-                    {Number(agent.total_collected).toLocaleString('en-IN')}
+                    {collected.toLocaleString('en-IN')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    of ₹{target.toLocaleString('en-IN')}
                   </p>
                 </div>
               </div>
 
-              <Progress value={percent} className="h-2 mb-2" />
-
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1 text-success">
-                    <CheckCircle className="w-3 h-3" />
-                    {agent.paid_count} paid
-                  </span>
-                  <span className="flex items-center gap-1 text-warning">
-                    <XCircle className="w-3 h-3" />
-                    {agent.not_paid_count} pending
-                  </span>
+              {/* Progress by customer count */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">Customers Attended</span>
+                  <span className="font-medium">{attendedCustomers}/{totalCustomers}</span>
                 </div>
-                <span className="text-muted-foreground">
-                  {percent.toFixed(0)}% collected
-                </span>
+                <Progress value={percentByCount} className="h-2" />
               </div>
+
+              <div className="grid grid-cols-4 gap-2 text-xs text-center">
+                <div className="bg-success/10 rounded-lg p-2">
+                  <div className="flex items-center justify-center gap-1 text-success mb-1">
+                    <CheckCircle className="w-3 h-3" />
+                  </div>
+                  <p className="font-bold text-success">{agent.paid_count}</p>
+                  <p className="text-muted-foreground">Paid</p>
+                </div>
+                
+                <div className="bg-destructive/10 rounded-lg p-2">
+                  <div className="flex items-center justify-center gap-1 text-destructive mb-1">
+                    <XCircle className="w-3 h-3" />
+                  </div>
+                  <p className="font-bold text-destructive">{agent.not_paid_count}</p>
+                  <p className="text-muted-foreground">Not Paid</p>
+                </div>
+
+                <div className="bg-warning/10 rounded-lg p-2">
+                  <div className="flex items-center justify-center gap-1 text-warning mb-1">
+                    <Clock className="w-3 h-3" />
+                  </div>
+                  <p className="font-bold text-warning">{promisedCount}</p>
+                  <p className="text-muted-foreground">Promise</p>
+                </div>
+
+                <div className="bg-muted rounded-lg p-2">
+                  <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
+                    <Target className="w-3 h-3" />
+                  </div>
+                  <p className="font-bold text-foreground">{pendingToVisit}</p>
+                  <p className="text-muted-foreground">Pending</p>
+                </div>
+              </div>
+
+              {pendingToVisit > 0 && (
+                <div className="mt-2 p-2 rounded-lg bg-warning/5 border border-warning/20">
+                  <p className="text-xs text-warning text-center">
+                    ⚠️ {pendingToVisit} customer(s) not yet visited today
+                  </p>
+                </div>
+              )}
             </div>
           );
         })}

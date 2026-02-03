@@ -1,4 +1,4 @@
-import { Target, TrendingUp, TrendingDown, Zap } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, Zap, Users, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 
@@ -8,6 +8,8 @@ interface TodaySummaryCardProps {
   pending: number;
   paidCount: number;
   notPaidCount: number;
+  totalCustomers?: number;
+  promisedCount?: number;
 }
 
 export function TodaySummaryCard({
@@ -16,16 +18,29 @@ export function TodaySummaryCard({
   pending,
   paidCount,
   notPaidCount,
+  totalCustomers = 0,
+  promisedCount = 0,
 }: TodaySummaryCardProps) {
   const progressPercent = todayTarget > 0 ? Math.min((collected / todayTarget) * 100, 100) : 0;
   const isAchieved = collected >= todayTarget && todayTarget > 0;
+  
+  // Customer attendance tracking
+  const attendedCount = paidCount + notPaidCount;
+  const pendingToVisit = totalCustomers - attendedCount;
+  const attendancePercent = totalCustomers > 0 ? (attendedCount / totalCustomers) * 100 : 0;
 
   // Motivation messages based on progress
   const getMotivation = () => {
-    if (isAchieved) return { message: "🎉 Target Achieved! Excellent work!", color: "text-success" };
-    if (progressPercent >= 75) return { message: "🔥 Almost there! Keep pushing!", color: "text-warning" };
-    if (progressPercent >= 50) return { message: "💪 Halfway done! You got this!", color: "text-primary" };
-    if (progressPercent >= 25) return { message: "🚀 Good start! Keep going!", color: "text-primary" };
+    if (isAchieved && attendancePercent >= 100) 
+      return { message: "🎉 Perfect! All targets achieved!", color: "text-success" };
+    if (isAchieved) 
+      return { message: "🎉 Target Achieved! Complete visits!", color: "text-success" };
+    if (progressPercent >= 75) 
+      return { message: "🔥 Almost there! Keep pushing!", color: "text-warning" };
+    if (progressPercent >= 50) 
+      return { message: "💪 Halfway done! You got this!", color: "text-primary" };
+    if (progressPercent >= 25) 
+      return { message: "🚀 Good start! Keep going!", color: "text-primary" };
     return { message: "⏰ Start strong! Today's target awaits!", color: "text-muted-foreground" };
   };
 
@@ -66,28 +81,56 @@ export function TodaySummaryCard({
         </div>
         <Progress value={progressPercent} className="h-3 bg-muted/50" />
         <p className="text-xs text-muted-foreground mt-1 text-right">
-          {progressPercent.toFixed(0)}% Complete
+          {progressPercent.toFixed(0)}% Collection Complete
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-success/10 rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <TrendingUp className="w-4 h-4 text-success" />
-            <span className="text-xs text-success font-medium">Collected</span>
+      {/* Customer Attendance Progress */}
+      {totalCustomers > 0 && (
+        <div className="mb-4 p-3 rounded-xl bg-background/50">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Customer Visits</span>
+            </div>
+            <span className="text-sm text-muted-foreground">
+              {attendedCount}/{totalCustomers}
+            </span>
           </div>
-          <p className="text-lg font-bold text-success">₹{collected.toLocaleString('en-IN')}</p>
-          <p className="text-xs text-muted-foreground">{paidCount} customers</p>
+          <Progress value={attendancePercent} className="h-2 bg-muted/50" />
+          {pendingToVisit > 0 && (
+            <p className="text-xs text-warning mt-2 flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {pendingToVisit} customer(s) pending visit
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="bg-success/10 rounded-xl p-3 text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <TrendingUp className="w-4 h-4 text-success" />
+          </div>
+          <p className="text-lg font-bold text-success">{paidCount}</p>
+          <p className="text-xs text-muted-foreground">Paid</p>
         </div>
 
-        <div className="bg-warning/10 rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <TrendingDown className="w-4 h-4 text-warning" />
-            <span className="text-xs text-warning font-medium">Pending</span>
+        <div className="bg-destructive/10 rounded-xl p-3 text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <TrendingDown className="w-4 h-4 text-destructive" />
           </div>
-          <p className="text-lg font-bold text-warning">₹{pending.toLocaleString('en-IN')}</p>
-          <p className="text-xs text-muted-foreground">{notPaidCount} customers</p>
+          <p className="text-lg font-bold text-destructive">{notPaidCount}</p>
+          <p className="text-xs text-muted-foreground">Not Paid</p>
+        </div>
+
+        <div className="bg-warning/10 rounded-xl p-3 text-center">
+          <div className="flex items-center justify-center gap-1 mb-1">
+            <Clock className="w-4 h-4 text-warning" />
+          </div>
+          <p className="text-lg font-bold text-warning">{promisedCount}</p>
+          <p className="text-xs text-muted-foreground">Promised</p>
         </div>
       </div>
 

@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, Clock, Users } from 'lucide-react';
 
 export default function ReportsPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isManager } = useAuth();
   const { data: payments, isLoading: paymentsLoading } = useAllPayments();
   const { data: dailyData, isLoading: dailyLoading } = useDailyCollections();
   const { data: customers } = useCustomers();
@@ -28,13 +28,22 @@ export default function ReportsPage() {
     .filter((p) => p.status === 'not_paid')
     .reduce((sum, p) => sum + Number(p.amount), 0);
   
-  const paidCount = todayPayments.filter((p) => p.status === 'paid').length;
-  const notPaidCount = todayPayments.filter((p) => p.status === 'not_paid').length;
+  // Count unique customers for each status
+  const paidCustomerIds = new Set(todayPayments.filter((p) => p.status === 'paid').map(p => p.customer_id));
+  const notPaidCustomerIds = new Set(todayPayments.filter((p) => p.status === 'not_paid').map(p => p.customer_id));
+  
+  const paidCount = paidCustomerIds.size;
+  const notPaidCount = notPaidCustomerIds.size;
+  
+  // Count promised payments for today
+  const promisedCount = payments?.filter((p) => p.promised_date === today).length || 0;
   
   // Calculate today's target (sum of daily_amount for all active customers)
-  const todayTarget = customers
-    ?.filter((c) => c.status === 'active')
-    .reduce((sum, c) => sum + Number(c.daily_amount), 0) || 0;
+  const activeCustomers = customers?.filter((c) => c.status === 'active') || [];
+  const todayTarget = activeCustomers.reduce((sum, c) => sum + Number(c.daily_amount), 0);
+  const totalCustomers = activeCustomers.length;
+
+  const canViewAgentReport = isAdmin || isManager;
 
   return (
     <MainLayout title="Reports">
@@ -46,11 +55,13 @@ export default function ReportsPage() {
           pending={todayPending}
           paidCount={paidCount}
           notPaidCount={notPaidCount}
+          totalCustomers={totalCustomers}
+          promisedCount={promisedCount}
         />
 
         {/* Tabs for different report views */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 h-12 bg-muted/50 rounded-xl p-1">
+          <TabsList className={`w-full grid h-12 bg-muted/50 rounded-xl p-1 ${canViewAgentReport ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger
               value="overview"
               className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
@@ -65,7 +76,7 @@ export default function ReportsPage() {
               <Clock className="w-4 h-4 mr-2" />
               Recent
             </TabsTrigger>
-            {isAdmin && (
+            {canViewAgentReport && (
               <TabsTrigger
                 value="agents"
                 className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
@@ -88,7 +99,7 @@ export default function ReportsPage() {
             />
           </TabsContent>
 
-          {isAdmin && (
+          {canViewAgentReport && (
             <TabsContent value="agents" className="mt-4">
               <AgentPerformanceCard
                 agents={agentStats || []}

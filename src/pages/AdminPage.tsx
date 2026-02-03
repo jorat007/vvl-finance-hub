@@ -3,14 +3,13 @@ import { MainLayout } from '@/components/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserPlus, FileText } from 'lucide-react';
-import { AgentManagement } from '@/components/admin/AgentManagement';
-import { CustomerAssignment } from '@/components/admin/CustomerAssignment';
-import { AuditLogsViewer } from '@/components/admin/AuditLogsViewer';
+import { Users, Settings } from 'lucide-react';
+import { UserManagement } from '@/components/admin/UserManagement';
+import { FeaturesManagement } from '@/components/admin/FeaturesManagement';
 
 export default function AdminPage() {
   const { role } = useAuth();
-  const [activeTab, setActiveTab] = useState('agents');
+  const [activeTab, setActiveTab] = useState('users');
 
   // Only admins can access this page
   if (role !== 'admin') {
@@ -21,31 +20,23 @@ export default function AdminPage() {
     <MainLayout title="Admin Panel">
       <div className="px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="agents" className="flex items-center gap-2 text-xs sm:text-sm">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="users" className="flex items-center gap-2 text-xs sm:text-sm">
               <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Agents</span>
+              <span>User Management</span>
             </TabsTrigger>
-            <TabsTrigger value="assign" className="flex items-center gap-2 text-xs sm:text-sm">
-              <UserPlus className="w-4 h-4" />
-              <span className="hidden sm:inline">Assign</span>
-            </TabsTrigger>
-            <TabsTrigger value="logs" className="flex items-center gap-2 text-xs sm:text-sm">
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Logs</span>
+            <TabsTrigger value="features" className="flex items-center gap-2 text-xs sm:text-sm">
+              <Settings className="w-4 h-4" />
+              <span>Features</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="agents">
-            <AgentManagement />
+          <TabsContent value="users">
+            <UserManagement />
           </TabsContent>
 
-          <TabsContent value="assign">
-            <CustomerAssignment />
-          </TabsContent>
-
-          <TabsContent value="logs">
-            <AuditLogsViewer />
+          <TabsContent value="features">
+            <FeaturesManagement />
           </TabsContent>
         </Tabs>
       </div>
