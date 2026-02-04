@@ -18,24 +18,13 @@ export function useFeaturePermissions() {
   return useQuery({
     queryKey: ['feature-permissions'],
     queryFn: async () => {
-      // Use raw SQL query since types aren't updated yet
-      const { data, error } = await supabase.rpc('get_feature_permissions' as any) as any;
+      const { data, error } = await supabase
+        .from('feature_permissions')
+        .select('*')
+        .order('feature_name');
       
-      // Fallback to direct query if RPC doesn't exist
-      if (error) {
-        const result = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/feature_permissions?select=*&order=feature_name`,
-          {
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            },
-          }
-        );
-        if (!result.ok) throw new Error('Failed to fetch permissions');
-        return (await result.json()) as FeaturePermission[];
-      }
-      return (data || []) as FeaturePermission[];
+      if (error) throw error;
+      return (data || []) as unknown as FeaturePermission[];
     },
     enabled: !!user,
   });
