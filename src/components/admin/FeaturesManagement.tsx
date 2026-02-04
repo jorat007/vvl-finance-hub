@@ -48,7 +48,7 @@ export function FeaturesManagement() {
 
     try {
       const { error } = await supabase
-        .from('feature_permissions' as any)
+        .from('feature_permissions')
         .update({ [field]: !currentValue })
         .eq('id', featureId);
 

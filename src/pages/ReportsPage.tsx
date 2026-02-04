@@ -6,8 +6,9 @@ import { TodaySummaryCard } from '@/components/reports/TodaySummaryCard';
 import { AgentPerformanceCard } from '@/components/reports/AgentPerformanceCard';
 import { RecentPaymentsList } from '@/components/reports/RecentPaymentsList';
 import { CollectionChart } from '@/components/reports/CollectionChart';
+import { FollowUpsList } from '@/components/reports/FollowUpsList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, Clock, Users } from 'lucide-react';
+import { BarChart3, Clock, Users, UserCheck } from 'lucide-react';
 
 export default function ReportsPage() {
   const { isAdmin, isManager } = useAuth();
@@ -60,32 +61,53 @@ export default function ReportsPage() {
         />
 
         {/* Tabs for different report views */}
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className={`w-full grid h-12 bg-muted/50 rounded-xl p-1 ${canViewAgentReport ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <Tabs defaultValue="followups" className="w-full">
+          <TabsList className={`w-full grid h-12 bg-muted/50 rounded-xl p-1 ${canViewAgentReport ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger
-              value="overview"
-              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              value="followups"
+              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm"
             >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Trends
-            </TabsTrigger>
-            <TabsTrigger
-              value="recent"
-              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
-            >
-              <Clock className="w-4 h-4 mr-2" />
-              Recent
+              <UserCheck className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Follow-ups</span>
+              <span className="sm:hidden">Due</span>
             </TabsTrigger>
             {canViewAgentReport && (
               <TabsTrigger
                 value="agents"
-                className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm"
               >
-                <Users className="w-4 h-4 mr-2" />
+                <Users className="w-4 h-4 mr-1 sm:mr-2" />
                 Agents
               </TabsTrigger>
             )}
+            <TabsTrigger
+              value="overview"
+              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm"
+            >
+              <BarChart3 className="w-4 h-4 mr-1 sm:mr-2" />
+              Trends
+            </TabsTrigger>
+            <TabsTrigger
+              value="recent"
+              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm"
+            >
+              <Clock className="w-4 h-4 mr-1 sm:mr-2" />
+              Recent
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="followups" className="mt-4">
+            <FollowUpsList date={today} />
+          </TabsContent>
+
+          {canViewAgentReport && (
+            <TabsContent value="agents" className="mt-4">
+              <AgentPerformanceCard
+                agents={agentStats || []}
+                isLoading={agentStatsLoading}
+              />
+            </TabsContent>
+          )}
 
           <TabsContent value="overview" className="mt-4 space-y-4">
             <CollectionChart data={dailyData} isLoading={dailyLoading} />
@@ -98,15 +120,6 @@ export default function ReportsPage() {
               limit={15}
             />
           </TabsContent>
-
-          {canViewAgentReport && (
-            <TabsContent value="agents" className="mt-4">
-              <AgentPerformanceCard
-                agents={agentStats || []}
-                isLoading={agentStatsLoading}
-              />
-            </TabsContent>
-          )}
         </Tabs>
       </div>
     </MainLayout>

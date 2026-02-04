@@ -107,6 +107,42 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_permissions: {
+        Row: {
+          admin_access: boolean
+          agent_access: boolean
+          created_at: string
+          description: string | null
+          feature_key: string
+          feature_name: string
+          id: string
+          manager_access: boolean
+          updated_at: string
+        }
+        Insert: {
+          admin_access?: boolean
+          agent_access?: boolean
+          created_at?: string
+          description?: string | null
+          feature_key: string
+          feature_name: string
+          id?: string
+          manager_access?: boolean
+          updated_at?: string
+        }
+        Update: {
+          admin_access?: boolean
+          agent_access?: boolean
+          created_at?: string
+          description?: string | null
+          feature_key?: string
+          feature_name?: string
+          id?: string
+          manager_access?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           agent_id: string
@@ -172,8 +208,10 @@ export type Database = {
           is_deleted: boolean | null
           mobile: string
           name: string
+          reporting_to: string | null
           updated_at: string
           user_id: string
+          whatsapp_number: string | null
         }
         Insert: {
           created_at?: string
@@ -183,8 +221,10 @@ export type Database = {
           is_deleted?: boolean | null
           mobile: string
           name: string
+          reporting_to?: string | null
           updated_at?: string
           user_id: string
+          whatsapp_number?: string | null
         }
         Update: {
           created_at?: string
@@ -194,8 +234,10 @@ export type Database = {
           is_deleted?: boolean | null
           mobile?: string
           name?: string
+          reporting_to?: string | null
           updated_at?: string
           user_id?: string
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
