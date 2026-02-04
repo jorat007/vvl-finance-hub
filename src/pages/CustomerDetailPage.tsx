@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/MainLayout';
-import { useCustomerWithBalance, useCustomerPayments, useDeleteCustomer } from '@/hooks/useData';
+import { useCustomerWithBalance, useCustomerPayments, useDeleteCustomer, useUpdatePayment, Payment } from '@/hooks/useData';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowLeft, Phone, MapPin, Calendar, Edit, Trash2, Plus } from 'lucide-react';
+import { usePermissionChecker } from '@/hooks/usePermissions';
+import { ArrowLeft, Phone, MapPin, Calendar, Edit, Trash2, Plus, X, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -19,16 +23,58 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, isManager } = useAuth();
+  const checkPermission = usePermissionChecker();
   const { toast } = useToast();
 
   const { data: customer, isLoading: customerLoading } = useCustomerWithBalance(id);
   const { data: payments, isLoading: paymentsLoading } = useCustomerPayments(id);
   const deleteCustomer = useDeleteCustomer();
+  const updatePayment = useUpdatePayment();
+
+  const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    amount: '',
+    mode: 'cash' as 'cash' | 'online',
+    status: 'paid' as 'paid' | 'not_paid',
+    remarks: '',
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Permission checks
+  const canUpdateOwnPayments = checkPermission('payment_update_own');
+  const canUpdateAllPayments = checkPermission('payment_update');
+  const sameDayOnly = checkPermission('payment_same_day_only');
+  
+  const canEditPayment = (payment: Payment) => {
+    const today = new Date().toISOString().split('T')[0];
+    const isOwnPayment = payment.agent_id === user?.id;
+    const isSameDay = payment.date === today;
+    
+    // Admin/Manager can edit all payments
+    if (isAdmin || isManager || canUpdateAllPayments) return true;
+    
+    // Agent can only edit own payments
+    if (!isOwnPayment) return false;
+    
+    // If same-day restriction applies, check date
+    if (sameDayOnly && !isSameDay) return false;
+    
+    return canUpdateOwnPayments;
+  };
 
   const handleDelete = async () => {
     if (!id) return;
@@ -46,6 +92,45 @@ export default function CustomerDetailPage() {
         title: 'Error',
         description: 'Failed to delete customer. Please try again.',
       });
+    }
+  };
+
+  const openEditPayment = (payment: Payment) => {
+    setEditingPayment(payment);
+    setEditFormData({
+      amount: String(payment.amount),
+      mode: payment.mode,
+      status: payment.status,
+      remarks: payment.remarks || '',
+    });
+  };
+
+  const handleUpdatePayment = async () => {
+    if (!editingPayment) return;
+    
+    setIsUpdating(true);
+    try {
+      await updatePayment.mutateAsync({
+        id: editingPayment.id,
+        amount: parseFloat(editFormData.amount) || 0,
+        mode: editFormData.mode,
+        status: editFormData.status,
+        remarks: editFormData.remarks || null,
+      });
+      
+      toast({
+        title: 'Payment Updated',
+        description: 'Payment has been updated successfully.',
+      });
+      setEditingPayment(null);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Failed to update payment.',
+      });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -205,6 +290,7 @@ export default function CustomerDetailPage() {
                     <th className="text-right py-3 px-2 font-medium text-muted-foreground">Amount</th>
                     <th className="text-center py-3 px-2 font-medium text-muted-foreground">Mode</th>
                     <th className="text-center py-3 px-2 font-medium text-muted-foreground">Status</th>
+                    <th className="text-center py-3 px-2 font-medium text-muted-foreground">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -228,6 +314,20 @@ export default function CustomerDetailPage() {
                           {payment.status === 'paid' ? 'Paid' : 'Not Paid'}
                         </span>
                       </td>
+                      <td className="py-3 px-2 text-center">
+                        {canEditPayment(payment) ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => openEditPayment(payment)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -236,6 +336,99 @@ export default function CustomerDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Edit Payment Dialog */}
+      <Dialog open={!!editingPayment} onOpenChange={(open) => !open && setEditingPayment(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Payment</DialogTitle>
+            <DialogDescription>
+              Update the payment details below.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Amount (₹)</Label>
+              <Input
+                type="number"
+                value={editFormData.amount}
+                onChange={(e) => setEditFormData({ ...editFormData, amount: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Payment Mode</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={editFormData.mode === 'cash' ? 'default' : 'outline'}
+                  onClick={() => setEditFormData({ ...editFormData, mode: 'cash' })}
+                >
+                  💵 Cash
+                </Button>
+                <Button
+                  type="button"
+                  variant={editFormData.mode === 'online' ? 'default' : 'outline'}
+                  onClick={() => setEditFormData({ ...editFormData, mode: 'online' })}
+                >
+                  📱 Online
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={editFormData.status === 'paid' ? 'default' : 'outline'}
+                  className={editFormData.status === 'paid' ? 'bg-success hover:bg-success/90' : ''}
+                  onClick={() => setEditFormData({ ...editFormData, status: 'paid' })}
+                >
+                  ✅ Paid
+                </Button>
+                <Button
+                  type="button"
+                  variant={editFormData.status === 'not_paid' ? 'default' : 'outline'}
+                  className={editFormData.status === 'not_paid' ? 'bg-warning hover:bg-warning/90' : ''}
+                  onClick={() => setEditFormData({ ...editFormData, status: 'not_paid' })}
+                >
+                  ⏳ Not Paid
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Remarks</Label>
+              <Textarea
+                value={editFormData.remarks}
+                onChange={(e) => setEditFormData({ ...editFormData, remarks: e.target.value })}
+                placeholder="Optional remarks..."
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingPayment(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdatePayment} disabled={isUpdating}>
+              {isUpdating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }

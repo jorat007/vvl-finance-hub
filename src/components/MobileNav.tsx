@@ -1,26 +1,17 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, BarChart3, Settings, Shield, Info } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, BarChart3, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/contexts/AuthContext';
 
-const baseNavItems = [
+const navItems = [
   { path: '/dashboard', label: 'Home', icon: LayoutDashboard },
   { path: '/customers', label: 'Customers', icon: Users },
   { path: '/payments/new', label: 'Payment', icon: CreditCard },
   { path: '/reports', label: 'Reports', icon: BarChart3 },
+  { path: '/profile', label: 'Profile', icon: User },
 ];
-
-const adminNavItem = { path: '/admin', label: 'Admin', icon: Shield };
-const settingsNavItem = { path: '/settings', label: 'Settings', icon: Settings };
 
 export function MobileNav() {
   const location = useLocation();
-  const { role } = useAuth();
-
-  // Build nav items based on role
-  const navItems = role === 'admin' 
-    ? [...baseNavItems, adminNavItem]
-    : [...baseNavItems, settingsNavItem];
 
   return (
     <nav className="mobile-nav">
@@ -29,7 +20,7 @@ export function MobileNav() {
           const isActive = location.pathname === item.path || 
             (item.path === '/customers' && location.pathname.startsWith('/customers')) ||
             (item.path === '/payments/new' && location.pathname.startsWith('/payments')) ||
-            (item.path === '/admin' && location.pathname.startsWith('/admin'));
+            (item.path === '/profile' && location.pathname.startsWith('/profile'));
           const Icon = item.icon;
 
           return (
