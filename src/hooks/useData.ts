@@ -352,3 +352,29 @@ export function useCreatePayment() {
     },
   });
 }
+
+export function useUpdatePayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...payment }: Partial<Payment> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('payments')
+        .update(payment)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['payments', data.customer_id] });
+      queryClient.invalidateQueries({ queryKey: ['all-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['customer', data.customer_id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-collections'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-status'] });
+    },
+  });
+}
