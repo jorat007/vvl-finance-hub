@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { path: '/dashboard', label: 'Home', icon: LayoutDashboard },
   { path: '/customers', label: 'Customers', icon: Users },
-  { path: '/payments/new', label: 'Payment', icon: CreditCard },
+  { path: '/payments', label: 'Payments', icon: CreditCard },
   { path: '/reports', label: 'Reports', icon: BarChart3 },
   { path: '/profile', label: 'Profile', icon: User },
 ];
@@ -19,7 +19,7 @@ export function MobileNav() {
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || 
             (item.path === '/customers' && location.pathname.startsWith('/customers')) ||
-            (item.path === '/payments/new' && location.pathname.startsWith('/payments')) ||
+            (item.path === '/payments' && location.pathname.startsWith('/payments')) ||
             (item.path === '/profile' && location.pathname.startsWith('/profile'));
           const Icon = item.icon;
 
