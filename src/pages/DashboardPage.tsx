@@ -1,14 +1,17 @@
 import { MainLayout } from '@/components/MainLayout';
 import { SummaryCard } from '@/components/SummaryCard';
-import { useDashboardStats, useDailyCollections, usePaymentStatusBreakdown } from '@/hooks/useData';
-import { Users, Wallet, TrendingUp, AlertCircle, Plus, UserPlus } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { useRoleBasedDashboardStats, useRoleBasedDailyCollections } from '@/hooks/useRoleBasedData';
+import { usePaymentStatusBreakdown } from '@/hooks/useData';
+import { Users, Wallet, TrendingUp, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CollectionChart } from '@/components/reports/CollectionChart';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: dailyData, isLoading: dailyLoading } = useDailyCollections();
+  const { data: stats, isLoading: statsLoading } = useRoleBasedDashboardStats();
+  const [period, setPeriod] = useState<'today' | 'week' | 'month'>('week');
+  const { data: dailyData, isLoading: dailyLoading } = useRoleBasedDailyCollections(period);
   const { data: pieData, isLoading: pieLoading } = usePaymentStatusBreakdown();
 
   return (
@@ -52,109 +55,87 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3">
-          <Link to="/payments/new" className="quick-action">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-              <Plus className="w-6 h-6 text-primary" />
-            </div>
-            <span className="font-medium text-foreground">Add Payment</span>
-          </Link>
-          <Link to="/customers/new" className="quick-action">
-            <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-2">
-              <UserPlus className="w-6 h-6 text-success" />
-            </div>
-            <span className="font-medium text-foreground">Add Customer</span>
-          </Link>
+        {/* Period Filter */}
+        <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-1">
+          {(['today', 'week', 'month'] as const).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={cn(
+                'flex-1 py-2.5 rounded-lg text-sm font-medium transition-all',
+                period === p
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {p === 'today' ? 'Today' : p === 'week' ? 'This Week' : 'This Month'}
+            </button>
+          ))}
         </div>
 
-        {/* Daily Collection Chart */}
-        <div className="chart-container">
-          <h3 className="font-semibold text-foreground mb-4">Daily Collection</h3>
-          {dailyLoading ? (
-            <Skeleton className="h-48 rounded-lg" />
-          ) : (
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={dailyData || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  dataKey="date" 
-                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                  axisLine={{ stroke: 'hsl(var(--border))' }}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                  axisLine={{ stroke: 'hsl(var(--border))' }}
-                  tickFormatter={(value) => `₹${value}`}
-                />
-                <Tooltip 
-                  formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Amount']}
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="amount" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={3}
-                  dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2 }}
-                  activeDot={{ r: 6, fill: 'hsl(var(--primary))' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
+        {/* Collection Trend Chart */}
+        <CollectionChart data={dailyData} isLoading={dailyLoading} />
 
-        {/* Paid vs Pending Pie Chart */}
+        {/* Pie Chart */}
         <div className="chart-container">
           <h3 className="font-semibold text-foreground mb-4">Payment Status</h3>
           {pieLoading ? (
             <Skeleton className="h-48 rounded-lg" />
           ) : (
-            <div className="flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={pieData || []}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {(pieData || []).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, '']}
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <>
+              <div className="flex items-center justify-center">
+                <div className="w-full" style={{ height: 200 }}>
+                  <PieChartSection pieData={pieData} />
+                </div>
+              </div>
+              <div className="flex justify-center gap-6 mt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-success" />
+                  <span className="text-sm text-muted-foreground">Paid</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-warning" />
+                  <span className="text-sm text-muted-foreground">Pending</span>
+                </div>
+              </div>
+            </>
           )}
-          <div className="flex justify-center gap-6 mt-4">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-success" />
-              <span className="text-sm text-muted-foreground">Paid</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-warning" />
-              <span className="text-sm text-muted-foreground">Pending</span>
-            </div>
-          </div>
         </div>
       </div>
     </MainLayout>
+  );
+}
+
+// Extracted pie chart to keep imports clean
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+
+function PieChartSection({ pieData }: { pieData: any }) {
+  return (
+    <ResponsiveContainer width="100%" height={200}>
+      <PieChart>
+        <Pie
+          data={pieData || []}
+          cx="50%"
+          cy="50%"
+          innerRadius={50}
+          outerRadius={80}
+          paddingAngle={5}
+          dataKey="value"
+          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+        >
+          {(pieData || []).map((entry: any, index: number) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
+          ))}
+        </Pie>
+        <Tooltip
+          formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, '']}
+          contentStyle={{
+            backgroundColor: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '8px',
+          }}
+        />
+      </PieChart>
+    </ResponsiveContainer>
   );
 }

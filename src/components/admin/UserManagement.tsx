@@ -21,11 +21,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { User, Phone, Users, TrendingUp, Plus, Edit, MessageCircle } from 'lucide-react';
+import { User, Phone, Users, TrendingUp, Plus, Edit, MessageCircle, KeyRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
+import { useAuth } from '@/contexts/AuthContext';
 
 type AppRole = 'admin' | 'manager' | 'agent';
 
@@ -48,12 +49,16 @@ const userSchema = z.object({
 
 export function UserManagement() {
   const { data: agents, isLoading } = useAgents();
+  const { isAdmin } = useAuth();
   const toggleStatus = useToggleAgentStatus();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [resetPasswordUser, setResetPasswordUser] = useState<any | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [resettingPassword, setResettingPassword] = useState(false);
   const [formData, setFormData] = useState<UserFormData>({
     name: '',
     mobile: '',
@@ -223,6 +228,44 @@ export function UserManagement() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser || !newPassword) return;
+    if (newPassword.length < 6) {
+      toast({ title: 'Error', description: 'Password must be at least 6 characters', variant: 'destructive' });
+      return;
+    }
+
+    setResettingPassword(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            user_id: resetPasswordUser.user_id,
+            new_password: newPassword,
+          }),
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to reset password');
+
+      toast({ title: 'Password Reset', description: `Password updated for ${resetPasswordUser.name}` });
+      setResetPasswordUser(null);
+      setNewPassword('');
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setResettingPassword(false);
     }
   };
 
@@ -496,6 +539,16 @@ export function UserManagement() {
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => { setResetPasswordUser(user); setNewPassword(''); }}
+                        title="Reset Password"
+                      >
+                        <KeyRound className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -519,6 +572,40 @@ export function UserManagement() {
           </div>
         )}
       </div>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={!!resetPasswordUser} onOpenChange={(open) => !open && setResetPasswordUser(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-primary" />
+              Reset Password
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <p className="text-sm text-muted-foreground">
+              Set a new password for <span className="font-semibold text-foreground">{resetPasswordUser?.name}</span>
+            </p>
+            <div className="space-y-2">
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                placeholder="Enter new password (min 6 chars)"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="touch-input"
+              />
+            </div>
+            <Button
+              onClick={handleResetPassword}
+              className="w-full touch-button touch-button-primary"
+              disabled={resettingPassword || newPassword.length < 6}
+            >
+              {resettingPassword ? 'Resetting...' : 'Reset Password'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

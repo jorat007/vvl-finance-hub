@@ -110,7 +110,7 @@ export default function PaymentFormPage() {
         title: 'Payment Saved',
         description: 'Payment entry has been recorded successfully.',
       });
-      navigate('/dashboard');
+      navigate('/payments');
     } catch (error: any) {
       toast({
         variant: 'destructive',

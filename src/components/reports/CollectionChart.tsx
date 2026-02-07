@@ -43,7 +43,7 @@ export function CollectionChart({ data, isLoading }: CollectionChartProps) {
             <TrendingUp className="w-5 h-5 text-success" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">7-Day Collection Trend</h3>
+            <h3 className="font-semibold text-foreground">Collection Trend</h3>
             <p className="text-xs text-muted-foreground">
               Avg: ₹{avgDaily.toLocaleString('en-IN', { maximumFractionDigits: 0 })}/day
             </p>
@@ -73,7 +73,7 @@ export function CollectionChart({ data, isLoading }: CollectionChartProps) {
       </div>
 
       <div className="bg-muted/20 rounded-xl p-4 mb-4">
-        <p className="text-sm text-muted-foreground">Total This Week</p>
+        <p className="text-sm text-muted-foreground">Total Collection</p>
         <p className="text-2xl font-bold text-foreground">
           ₹{totalWeek.toLocaleString('en-IN')}
         </p>

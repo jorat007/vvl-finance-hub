@@ -13,6 +13,7 @@ import DashboardPage from "./pages/DashboardPage";
 import CustomersPage from "./pages/CustomersPage";
 import CustomerDetailPage from "./pages/CustomerDetailPage";
 import CustomerFormPage from "./pages/CustomerFormPage";
+import PaymentsPage from "./pages/PaymentsPage";
 import PaymentFormPage from "./pages/PaymentFormPage";
 import ReportsPage from "./pages/ReportsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -56,6 +57,11 @@ const App = () => (
               <Route path="/customers/:id/edit" element={
                 <ProtectedRoute>
                   <CustomerFormPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/payments" element={
+                <ProtectedRoute>
+                  <PaymentsPage />
                 </ProtectedRoute>
               } />
               <Route path="/payments/new" element={
