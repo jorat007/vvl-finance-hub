@@ -1,23 +1,25 @@
-// hooks/useTodaySummary.ts
+import { useAllPayments, useCustomers } from '@/hooks/useData';
+import { useAuth } from '@/contexts/AuthContext';
+
 export function useTodaySummary() {
   const { data: payments } = useAllPayments();
   const { data: customers } = useCustomers();
-  const { isAdmin, isManager } = useAuth();
+  const { user } = useAuth();
 
   const today = new Date().toISOString().split('T')[0];
   const todayPayments = payments?.filter(p => p.date === today) || [];
 
   const collected = todayPayments
     .filter(p => p.status === 'paid')
-    .reduce((s, p) => s + Number(p.amount), 0);
+    .reduce((sum, p) => sum + Number(p.amount), 0);
 
   const pending = todayPayments
     .filter(p => p.status === 'not_paid')
-    .reduce((s, p) => s + Number(p.amount), 0);
+    .reduce((sum, p) => sum + Number(p.amount), 0);
 
   const activeCustomers = customers?.filter(c => c.status === 'active') || [];
   const todayTarget = activeCustomers.reduce(
-    (s, c) => s + Number(c.daily_amount),
+    (sum, c) => sum + Number(c.daily_amount),
     0
   );
 
@@ -32,5 +34,6 @@ export function useTodaySummary() {
       todayPayments.filter(p => p.status === 'not_paid').map(p => p.customer_id)
     ).size,
     totalCustomers: activeCustomers.length,
+    promisedCount: todayPayments.filter(p => p.promised_date === today).length,
   };
 }
