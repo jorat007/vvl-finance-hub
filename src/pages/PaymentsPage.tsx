@@ -1,5 +1,5 @@
 import { MainLayout } from '@/components/MainLayout';
-import { useAllPayments, useCustomers } from '@/hooks/useData';
+//import { useAllPayments, useCustomers } from '@/hooks/useData';
 import { useAuth } from '@/contexts/AuthContext';
 import { FollowUpsList } from '@/components/reports/FollowUpsList';
 import { RecentPaymentsList } from '@/components/reports/RecentPaymentsList';
