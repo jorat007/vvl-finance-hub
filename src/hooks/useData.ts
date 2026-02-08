@@ -28,7 +28,7 @@ export interface Payment {
   remarks: string | null;
   promised_date: string | null;
   created_at: string;
-  customers?: Pick<Customer, 'id' | 'name' | 'area'>;
+  customers?: Pick<Customer, 'id' | 'name' | 'area' | 'mobile' | 'loan_amount' | 'daily_amount'>;
 }
 
 export interface CustomerWithBalance extends Customer {
@@ -45,6 +45,7 @@ export function useCustomers() {
       const { data, error } = await supabase
         .from('customers')
         .select('*')
+        .eq('is_deleted', false)
         .order('name');
 
       if (error) throw error;
@@ -125,9 +126,13 @@ export function useAllPayments() {
           customers (
             id,
             name,
-            area
+            area,
+            mobile,
+            loan_amount,
+            daily_amount
           )
         `)
+        .eq('is_deleted', false)
         .order('date', { ascending: false })
         .order('created_at', { ascending: false });
 
@@ -358,22 +363,27 @@ export function useUpdatePayment() {
 
   return useMutation({
     mutationFn: async ({ id, ...payment }: Partial<Payment> & { id: string }) => {
-      const { data, error } = await supabase
+      // Round amount to avoid floating point precision issues
+      const updateData = {
+        ...payment,
+        ...(payment.amount !== undefined ? { amount: Math.round(Number(payment.amount) * 100) / 100 } : {}),
+      };
+
+      const { error } = await supabase
         .from('payments')
-        .update(payment)
-        .eq('id', id)
-        .select()
-        .single();
+        .update(updateData)
+        .eq('id', id);
 
       if (error) throw error;
-      return data;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['payments', data.customer_id] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['all-payments'] });
-      queryClient.invalidateQueries({ queryKey: ['customer', data.customer_id] });
+      queryClient.invalidateQueries({ queryKey: ['customer'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats-role'] });
       queryClient.invalidateQueries({ queryKey: ['daily-collections'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-collections-role'] });
       queryClient.invalidateQueries({ queryKey: ['payment-status'] });
     },
   });
