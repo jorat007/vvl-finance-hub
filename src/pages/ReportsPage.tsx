@@ -1,15 +1,12 @@
 import { MainLayout } from '@/components/MainLayout';
-import { useAgentStats } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
-import { AgentPerformanceCard } from '@/components/reports/AgentPerformanceCard'; 
 import { AgentWiseReport } from '@/components/reports/AgentWiseReport';
+import { CustomerWiseReport } from '@/components/reports/CustomerWiseReport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, UserCheck } from 'lucide-react';
 
 export default function ReportsPage() {
   const { isAdmin, isManager } = useAuth();
-  const { data: agentStats, isLoading: agentStatsLoading } = useAgentStats();
-
   const canViewAgentReport = isAdmin || isManager;
 
   const tabs = [
@@ -20,7 +17,10 @@ export default function ReportsPage() {
   return (
     <MainLayout title="Reports">
       <div className="px-4 py-4 space-y-6">
-        <Tabs defaultValue={canViewAgentReport ? 'agents' : 'customers'} className="w-full">
+        <Tabs
+          defaultValue={canViewAgentReport ? 'agents' : 'customers'}
+          className="w-full"
+        >
           <TabsList
             className="w-full grid h-12 bg-muted/50 rounded-xl p-1"
             style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
@@ -39,10 +39,6 @@ export default function ReportsPage() {
 
           {canViewAgentReport && (
             <TabsContent value="agents" className="mt-4">
-              {* <AgentPerformanceCard
-                agents={agentStats || []}
-                isLoading={agentStatsLoading}
-              /> *}
               <AgentWiseReport />
             </TabsContent>
           )}
