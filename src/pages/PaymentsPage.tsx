@@ -16,9 +16,11 @@ export default function PaymentsPage() {
 
   return (
     <MainLayout title="Payments">
-      <TodaySummaryCard {...summary} />
+      
 
       <div className="px-4 py-4 space-y-4">
+        <TodaySummaryCard {...summary} />
+        
         <Tabs defaultValue="followups" className="w-full">
           <TabsList className="w-full grid grid-cols-2 h-12 bg-muted/50 rounded-xl p-1">
             <TabsTrigger value="followups" className="rounded-lg text-sm">
