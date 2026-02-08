@@ -1,8 +1,7 @@
 import { MainLayout } from '@/components/MainLayout';
 import { useAgentStats } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
-import { AgentPerformanceCard } from '@/components/reports/AgentPerformanceCard';
-import { AgentPerformanceCard } from '@/components/reports/AgentPerformanceCard';
+import { AgentPerformanceCard } from '@/components/reports/AgentPerformanceCard'; 
 import { AgentWiseReport } from '@/components/reports/AgentWiseReport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, UserCheck } from 'lucide-react';
