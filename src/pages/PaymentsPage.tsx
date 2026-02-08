@@ -1,6 +1,5 @@
 import { MainLayout } from '@/components/MainLayout';
-//import { useAllPayments, useCustomers } from '@/hooks/useData';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAllPayments } from '@/hooks/useData';
 import { FollowUpsList } from '@/components/reports/FollowUpsList';
 import { RecentPaymentsList } from '@/components/reports/RecentPaymentsList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,20 +17,16 @@ export default function PaymentsPage() {
   return (
     <MainLayout title="Payments">
       <TodaySummaryCard {...summary} />
+
       <div className="px-4 py-4 space-y-4">
         <Tabs defaultValue="followups" className="w-full">
           <TabsList className="w-full grid grid-cols-2 h-12 bg-muted/50 rounded-xl p-1">
-            <TabsTrigger
-              value="followups"
-              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-sm"
-            >
+            <TabsTrigger value="followups" className="rounded-lg text-sm">
               <UserCheck className="w-4 h-4 mr-2" />
               Follow-ups
             </TabsTrigger>
-            <TabsTrigger
-              value="recent"
-              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-sm"
-            >
+
+            <TabsTrigger value="recent" className="rounded-lg text-sm">
               <Clock className="w-4 h-4 mr-2" />
               Recent
             </TabsTrigger>
