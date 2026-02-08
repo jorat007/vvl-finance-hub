@@ -3,9 +3,9 @@ import { LayoutDashboard, Users, CreditCard, BarChart3, User } from 'lucide-reac
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { path: '/dashboard', label: 'Home', icon: LayoutDashboard },
-  { path: '/customers', label: 'Customers', icon: Users },
+  { path: '/dashboard', label: 'Home', icon: LayoutDashboard },  
   { path: '/payments', label: 'Payments', icon: CreditCard },
+  { path: '/customers', label: 'Customers', icon: Users },
   { path: '/reports', label: 'Reports', icon: BarChart3 },
   { path: '/profile', label: 'Profile', icon: User },
 ];
