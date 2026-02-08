@@ -7,12 +7,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserCheck, Clock, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { TodaySummaryCard } from '@/components/reports/TodaySummaryCard';
+import { useTodaySummary } from '@/hooks/useTodaySummary';
+
 export default function PaymentsPage() {
   const { data: payments, isLoading: paymentsLoading } = useAllPayments();
   const today = new Date().toISOString().split('T')[0];
+  const summary = useTodaySummary();
 
   return (
     <MainLayout title="Payments">
+      <TodaySummaryCard {...summary} />
       <div className="px-4 py-4 space-y-4">
         <Tabs defaultValue="followups" className="w-full">
           <TabsList className="w-full grid grid-cols-2 h-12 bg-muted/50 rounded-xl p-1">
