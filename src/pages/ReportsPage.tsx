@@ -53,7 +53,7 @@ export default function ReportsPage() {
   return (
     <MainLayout title="Reports">
       <div className="px-4 py-4 space-y-6">
-        {/* Today's Summary Card */}
+        {/* Today's Summary Card 
         <TodaySummaryCard
           todayTarget={todayTarget}
           collected={todayCollected}
@@ -63,7 +63,7 @@ export default function ReportsPage() {
           totalCustomers={totalCustomers}
           promisedCount={promisedCount}
         />
-
+*/}
         {/* Tabs */}
         <Tabs defaultValue={canViewAgentReport ? 'agents' : 'customers'} className="w-full">
           <TabsList
