@@ -55,52 +55,67 @@ export type Database = {
       }
       customers: {
         Row: {
+          aadhaar_number: string | null
           area: string
           assigned_agent_id: string | null
+          bank_account_number: string | null
+          bank_name: string | null
           created_at: string
           created_by: string
           daily_amount: number
           deleted_at: string | null
           deleted_by: string | null
           id: string
+          ifsc_code: string | null
           is_deleted: boolean | null
           loan_amount: number
           mobile: string
           name: string
+          pan_number: string | null
           start_date: string
           status: string
           updated_at: string
         }
         Insert: {
+          aadhaar_number?: string | null
           area: string
           assigned_agent_id?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
           created_at?: string
           created_by: string
           daily_amount?: number
           deleted_at?: string | null
           deleted_by?: string | null
           id?: string
+          ifsc_code?: string | null
           is_deleted?: boolean | null
           loan_amount?: number
           mobile: string
           name: string
+          pan_number?: string | null
           start_date?: string
           status?: string
           updated_at?: string
         }
         Update: {
+          aadhaar_number?: string | null
           area?: string
           assigned_agent_id?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
           created_at?: string
           created_by?: string
           daily_amount?: number
           deleted_at?: string | null
           deleted_by?: string | null
           id?: string
+          ifsc_code?: string | null
           is_deleted?: boolean | null
           loan_amount?: number
           mobile?: string
           name?: string
+          pan_number?: string | null
           start_date?: string
           status?: string
           updated_at?: string
@@ -140,6 +155,48 @@ export type Database = {
           id?: string
           manager_access?: boolean
           updated_at?: string
+        }
+        Relationships: []
+      }
+      fund_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string | null
+          id: string
+          is_deleted: boolean | null
+          reference_id: string | null
+          reference_table: string | null
+          type: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          reference_id?: string | null
+          reference_table?: string | null
+          type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          reference_id?: string | null
+          reference_table?: string | null
+          type?: string
         }
         Relationships: []
       }
@@ -201,6 +258,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           deleted_at: string | null
           deleted_by: string | null
@@ -214,6 +272,7 @@ export type Database = {
           whatsapp_number: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
@@ -227,6 +286,7 @@ export type Database = {
           whatsapp_number?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
@@ -272,6 +332,20 @@ export type Database = {
     Functions: {
       get_agent_daily_stats: {
         Args: { p_date?: string }
+        Returns: {
+          agent_id: string
+          agent_name: string
+          customer_count: number
+          not_paid_count: number
+          paid_count: number
+          promised_count: number
+          total_collected: number
+          total_pending: number
+          total_target: number
+        }[]
+      }
+      get_agent_stats_range: {
+        Args: { p_from?: string; p_to?: string }
         Returns: {
           agent_id: string
           agent_name: string

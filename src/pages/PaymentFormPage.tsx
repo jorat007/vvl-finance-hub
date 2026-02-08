@@ -99,7 +99,7 @@ export default function PaymentFormPage() {
       await createPayment.mutateAsync({
         customer_id: formData.customer_id,
         date: formData.date,
-        amount: parseFloat(formData.amount) || 0,
+        amount: Math.round((parseFloat(formData.amount) || 0) * 100) / 100,
         mode: formData.mode,
         status: formData.status,
         remarks: formData.remarks || null,
