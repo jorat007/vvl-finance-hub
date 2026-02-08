@@ -39,10 +39,10 @@ export default function ReportsPage() {
 
           {canViewAgentReport && (
             <TabsContent value="agents" className="mt-4">
-              <AgentPerformanceCard
+              {* <AgentPerformanceCard
                 agents={agentStats || []}
                 isLoading={agentStatsLoading}
-              />
+              /> *}
               <AgentWiseReport />
             </TabsContent>
           )}
