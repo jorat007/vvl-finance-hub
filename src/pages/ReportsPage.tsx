@@ -1,17 +1,22 @@
 import { MainLayout } from '@/components/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissionChecker } from '@/hooks/usePermissions';
 import { AgentWiseReport } from '@/components/reports/AgentWiseReport';
 import { CustomerWiseReport } from '@/components/reports/CustomerWiseReport';
+import { FundReport } from '@/components/reports/FundReport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck } from 'lucide-react';
+import { Users, UserCheck, Wallet } from 'lucide-react';
 
 export default function ReportsPage() {
   const { isAdmin, isManager } = useAuth();
+  const checkPermission = usePermissionChecker();
   const canViewAgentReport = isAdmin || isManager;
+  const canViewFunds = checkPermission('fund_manage') || checkPermission('fund_view');
 
   const tabs = [
     ...(canViewAgentReport ? [{ value: 'agents', label: 'Agents', icon: Users }] : []),
     { value: 'customers', label: 'Customers', icon: UserCheck },
+    ...(canViewFunds ? [{ value: 'funds', label: 'Funds', icon: Wallet }] : []),
   ];
 
   return (
@@ -46,6 +51,12 @@ export default function ReportsPage() {
           <TabsContent value="customers" className="mt-4">
             <CustomerWiseReport />
           </TabsContent>
+
+          {canViewFunds && (
+            <TabsContent value="funds" className="mt-4">
+              <FundReport />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </MainLayout>

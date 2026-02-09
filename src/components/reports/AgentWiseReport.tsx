@@ -153,85 +153,47 @@ export function AgentWiseReport() {
  */
 
 
-import { useState, useMemo } from 'react';
-import { useAllPayments, useCustomers } from '@/hooks/useData';
+import { useState } from 'react';
 import { AgentPerformanceCard } from '@/components/reports/AgentPerformanceCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar, Download } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function AgentWiseReport() {
-  const { data: payments, isLoading: paymentsLoading } = useAllPayments();
-  const { data: customers, isLoading: customersLoading } = useCustomers();
-
+  const { user } = useAuth();
   const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
 
-  const isLoading = paymentsLoading || customersLoading;
-
-  const agentData = useMemo(() => {
-    if (!payments || !customers) return [];
-
-    // Get unique agent IDs from customers
-    const agentIds = Array.from(
-      new Set(customers.map((c) => c.assigned_agent_id).filter(Boolean))
-    );
-
-    return agentIds.map((agentId) => {
-      const agentCustomers = customers.filter(
-        (c) => c.assigned_agent_id === agentId && c.status === 'active'
-      );
-
-      const agentPayments = payments.filter(
-        (p) =>
-          p.agent_id === agentId &&
-          p.date >= fromDate &&
-          p.date <= toDate
-      );
-
-      const totalCollected = agentPayments
-        .filter((p) => p.status === 'paid')
-        .reduce((s, p) => s + Number(p.amount), 0);
-
-      const paidCount = agentPayments.filter((p) => p.status === 'paid').length;
-      const notPaidCount = agentPayments.filter((p) => p.status === 'not_paid').length;
-      const promisedCount = agentPayments.filter((p) => p.promised_date).length;
-
-      // Date range days
-      const start = new Date(fromDate);
-      const end = new Date(toDate);
-      const totalDays =
-        Math.max(
-          1,
-          Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
-        );
-
-      const totalTarget =
-        totalDays *
-        agentCustomers.reduce((s, c) => s + Number(c.daily_amount), 0);
-
-      // Agent name fallback (from payment if available)
-      const agentName =
-        agentPayments[0]?.agent_name || 'Agent';
-
-      return {
-        agent_id: agentId as string,
-        agent_name: agentName,
-        total_collected: totalCollected,
-        total_pending: Math.max(0, totalTarget - totalCollected),
-        customer_count: agentCustomers.length,
-        paid_count: paidCount,
-        not_paid_count: notPaidCount,
-        promised_count: promisedCount,
-        total_target: totalTarget,
-      };
-    });
-  }, [payments, customers, fromDate, toDate]);
+  const { data: agentData, isLoading } = useQuery({
+    queryKey: ['agent-stats-range', fromDate, toDate],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_agent_stats_range', {
+        p_from: fromDate,
+        p_to: toDate,
+      });
+      if (error) throw error;
+      return (data || []) as {
+        agent_id: string;
+        agent_name: string;
+        total_collected: number;
+        total_pending: number;
+        customer_count: number;
+        paid_count: number;
+        not_paid_count: number;
+        promised_count: number;
+        total_target: number;
+      }[];
+    },
+    enabled: !!user,
+  });
 
   const handleExportExcel = () => {
-    if (agentData.length === 0) return;
+    if (!agentData || agentData.length === 0) return;
 
     const headers = [
       'Agent Name',
@@ -261,8 +223,8 @@ export function AgentWiseReport() {
       headers.join(','),
       ...rows.map((r) => r.join(',')),
       '',
-      `Total Collected,${agentData.reduce((s, a) => s + a.total_collected, 0)}`,
-      `Total Target,${agentData.reduce((s, a) => s + a.total_target, 0)}`,
+      `Total Collected,${agentData.reduce((s, a) => s + Number(a.total_collected), 0)}`,
+      `Total Target,${agentData.reduce((s, a) => s + Number(a.total_target), 0)}`,
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -309,7 +271,7 @@ export function AgentWiseReport() {
       </div>
 
       {/* Agent Performance */}
-      <AgentPerformanceCard agents={agentData} isLoading={isLoading} />
+      <AgentPerformanceCard agents={agentData || []} isLoading={isLoading} />
     </div>
   );
 }
