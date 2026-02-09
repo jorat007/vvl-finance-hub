@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '@/components/MainLayout';
 import { useCreateCustomer, useUpdateCustomer, useCustomerWithBalance } from '@/hooks/useData';
+import { useFundBalance, useAddFund } from '@/hooks/useFundManagement';
 import { useAgents } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissionChecker } from '@/hooks/usePermissions';
@@ -11,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Select,
   SelectContent,
@@ -18,6 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 const customerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -36,14 +45,14 @@ export default function CustomerFormPage() {
   const { toast } = useToast();
   const { user, isAdmin, isManager } = useAuth();
   const checkPermission = usePermissionChecker();
+  const queryClient = useQueryClient();
 
   const { data: existingCustomer } = useCustomerWithBalance(id);
   const { data: agents } = useAgents();
+  const { data: fundBalance } = useFundBalance();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
 
-  // Get agents only (not admins/managers for assignment)
-  const agentsList = agents?.filter((a) => a.role === 'agent' && a.is_active) || [];
   const allAssignableUsers = agents?.filter((a) => a.is_active) || [];
 
   const [formData, setFormData] = useState<{
@@ -55,6 +64,11 @@ export default function CustomerFormPage() {
     start_date: string;
     status: 'active' | 'closed' | 'defaulted';
     assigned_agent_id: string;
+    pan_number: string;
+    aadhaar_number: string;
+    bank_name: string;
+    bank_account_number: string;
+    ifsc_code: string;
   }>({
     name: '',
     mobile: '',
@@ -64,6 +78,11 @@ export default function CustomerFormPage() {
     start_date: new Date().toISOString().split('T')[0],
     status: 'active',
     assigned_agent_id: user?.id || '',
+    pan_number: '',
+    aadhaar_number: '',
+    bank_name: '',
+    bank_account_number: '',
+    ifsc_code: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -81,6 +100,11 @@ export default function CustomerFormPage() {
         start_date: existingCustomer.start_date,
         status: existingCustomer.status,
         assigned_agent_id: existingCustomer.assigned_agent_id || user?.id || '',
+        pan_number: (existingCustomer as any).pan_number || '',
+        aadhaar_number: (existingCustomer as any).aadhaar_number || '',
+        bank_name: (existingCustomer as any).bank_name || '',
+        bank_account_number: (existingCustomer as any).bank_account_number || '',
+        ifsc_code: (existingCustomer as any).ifsc_code || '',
       });
     }
   }, [existingCustomer, user?.id]);
@@ -89,10 +113,13 @@ export default function CustomerFormPage() {
     e.preventDefault();
     setErrors({});
 
+    const loanAmount = Math.round((parseFloat(formData.loan_amount) || 0) * 100) / 100;
+    const dailyAmount = Math.round((parseFloat(formData.daily_amount) || 0) * 100) / 100;
+
     const parsed = customerSchema.safeParse({
       ...formData,
-      loan_amount: parseFloat(formData.loan_amount) || 0,
-      daily_amount: parseFloat(formData.daily_amount) || 0,
+      loan_amount: loanAmount,
+      daily_amount: dailyAmount,
     });
 
     if (!parsed.success) {
@@ -104,18 +131,35 @@ export default function CustomerFormPage() {
       return;
     }
 
+    // Fund balance check for new loans only
+    if (!isEdit && fundBalance !== undefined && fundBalance !== null) {
+      if (loanAmount > fundBalance) {
+        toast({
+          variant: 'destructive',
+          title: 'Insufficient Funds',
+          description: `Available balance is ₹${fundBalance.toLocaleString('en-IN')}. Please add funds in Fund Management to proceed.`,
+        });
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
-      const customerData = {
+      const customerData: any = {
         name: formData.name,
         mobile: formData.mobile,
         area: formData.area,
-        loan_amount: parseFloat(formData.loan_amount),
-        daily_amount: parseFloat(formData.daily_amount),
+        loan_amount: loanAmount,
+        daily_amount: dailyAmount,
         start_date: formData.start_date,
         status: formData.status,
         assigned_agent_id: formData.assigned_agent_id || user?.id || null,
+        pan_number: formData.pan_number || null,
+        aadhaar_number: formData.aadhaar_number || null,
+        bank_name: formData.bank_name || null,
+        bank_account_number: formData.bank_account_number || null,
+        ifsc_code: formData.ifsc_code || null,
       };
 
       if (isEdit) {
@@ -125,7 +169,22 @@ export default function CustomerFormPage() {
           description: 'Customer details have been updated successfully.',
         });
       } else {
-        await createCustomer.mutateAsync(customerData);
+        const result = await createCustomer.mutateAsync(customerData);
+
+        // Deduct from fund on new loan creation
+        if (result?.id) {
+          await supabase.from('fund_transactions').insert({
+            amount: loanAmount,
+            type: 'loan_disbursement',
+            description: `Loan disbursed to ${formData.name}`,
+            reference_table: 'customers',
+            reference_id: result.id,
+            created_by: user!.id,
+          });
+          queryClient.invalidateQueries({ queryKey: ['fund-balance'] });
+          queryClient.invalidateQueries({ queryKey: ['fund-transactions'] });
+        }
+
         toast({
           title: 'Customer Added',
           description: 'New customer has been added successfully.',
@@ -156,6 +215,18 @@ export default function CustomerFormPage() {
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Customers</span>
         </button>
+
+        {/* Fund Balance Warning for new loans */}
+        {!isEdit && fundBalance !== undefined && fundBalance !== null && (
+          <div className={`form-section mb-0 ${fundBalance > 0 ? 'bg-success/5 border-success/20' : 'bg-destructive/5 border-destructive/20'}`}>
+            <p className="text-sm">
+              <span className="text-muted-foreground">Available Funds: </span>
+              <span className={`font-bold ${fundBalance > 0 ? 'text-success' : 'text-destructive'}`}>
+                ₹{fundBalance.toLocaleString('en-IN')}
+              </span>
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-section space-y-4">
@@ -286,6 +357,68 @@ export default function CustomerFormPage() {
               </Select>
             </div>
           </div>
+
+          {/* KYC Details - Optional */}
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="kyc" className="form-section border rounded-xl px-4 mb-0">
+              <AccordionTrigger className="font-semibold text-foreground">
+                KYC Details (Optional)
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-2">
+                    <Label>PAN Number</Label>
+                    <Input
+                      placeholder="e.g., ABCDE1234F"
+                      value={formData.pan_number}
+                      onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase().slice(0, 10) })}
+                      className="touch-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Aadhaar Number</Label>
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      placeholder="12 digit Aadhaar number"
+                      value={formData.aadhaar_number}
+                      onChange={(e) => setFormData({ ...formData, aadhaar_number: e.target.value.replace(/\D/g, '').slice(0, 12) })}
+                      className="touch-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Bank Name</Label>
+                    <Input
+                      placeholder="Enter bank name"
+                      value={formData.bank_name}
+                      onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                      className="touch-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Bank Account Number</Label>
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      placeholder="Enter account number"
+                      value={formData.bank_account_number}
+                      onChange={(e) => setFormData({ ...formData, bank_account_number: e.target.value.replace(/\D/g, '') })}
+                      className="touch-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>IFSC Code</Label>
+                    <Input
+                      placeholder="e.g., SBIN0001234"
+                      value={formData.ifsc_code}
+                      onChange={(e) => setFormData({ ...formData, ifsc_code: e.target.value.toUpperCase().slice(0, 11) })}
+                      className="touch-input"
+                    />
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           <Button
             type="submit"

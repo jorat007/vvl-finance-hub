@@ -5,9 +5,11 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { User, Shield, LogOut, Info, Moon, Sun, Users, Settings, Heart, Building2, Code, ExternalLink, Zap, TrendingUp } from 'lucide-react';
+import { User, Shield, LogOut, Info, Moon, Sun, Users, Settings, Heart, Building2, Code, ExternalLink, Zap, TrendingUp, Wallet } from 'lucide-react';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { FeaturesManagement } from '@/components/admin/FeaturesManagement';
+import { FundManagement } from '@/components/admin/FundManagement';
+import { ProfileImageUpload } from '@/components/profile/ProfileImageUpload';
 import { usePermissionChecker } from '@/hooks/usePermissions';
 
 // About Tab Illustration
@@ -70,9 +72,11 @@ function DetailsTab() {
       {/* Profile Card */}
       <div className="form-section">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
-            <User className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <ProfileImageUpload
+            userName={user?.email?.split('@')[0]}
+            size="lg"
+            editable={true}
+          />
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-foreground">{user?.email?.split('@')[0]}</h2>
             <div className="flex items-center gap-2 mt-1">
@@ -254,11 +258,13 @@ export default function ProfilePage() {
   // Feature-based access control
   const canManageUsers = checkPermission('user_create') || checkPermission('user_update') || checkPermission('user_delete');
   const canManageFeatures = role === 'admin'; // Only admin can manage features
+  const canManageFunds = checkPermission('fund_manage') || checkPermission('fund_view');
 
   // Build tabs based on permissions
   const tabs = [
     { value: 'details', label: 'Details', icon: User, show: true },
     { value: 'users', label: 'Users', icon: Users, show: canManageUsers },
+    { value: 'funds', label: 'Funds', icon: Wallet, show: canManageFunds },
     { value: 'features', label: 'Features', icon: Settings, show: canManageFeatures },
     { value: 'about', label: 'About', icon: Info, show: true },
   ].filter(tab => tab.show);
@@ -283,6 +289,12 @@ export default function ProfilePage() {
           {canManageUsers && (
             <TabsContent value="users">
               <UserManagement />
+            </TabsContent>
+          )}
+
+          {canManageFunds && (
+            <TabsContent value="funds">
+              <FundManagement />
             </TabsContent>
           )}
 
