@@ -1,8 +1,9 @@
 import { ReactNode } from 'react';
 import { MobileNav } from './MobileNav';
 import { ThemeToggle } from './ThemeToggle';
+import { AppLogo } from './AppLogo';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogOut, Building2 } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MainLayoutProps {
@@ -20,9 +21,7 @@ export function MainLayout({ children, title }: MainLayoutProps) {
       <header className="page-header">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <AppLogo size="sm" />
             <div>
               <h1 className="text-lg font-bold text-foreground">
                 {title || 'CRM'}

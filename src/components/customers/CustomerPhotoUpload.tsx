@@ -1,72 +1,42 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Camera, User, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface ProfileImageUploadProps {
-  avatarUrl?: string | null;
-  userName?: string;
-  userId?: string;
+interface CustomerPhotoUploadProps {
+  photoUrl?: string | null;
+  customerName?: string;
+  customerId?: string;
   size?: 'sm' | 'md' | 'lg';
   editable?: boolean;
+  onPhotoUploaded?: (url: string) => void;
 }
 
-export function ProfileImageUpload({
-  avatarUrl: propAvatarUrl,
-  userName,
-  userId,
+const sizeClasses = { sm: 'w-12 h-12', md: 'w-16 h-16', lg: 'w-20 h-20' };
+const iconSizes = { sm: 'w-5 h-5', md: 'w-8 h-8', lg: 'w-10 h-10' };
+
+export function CustomerPhotoUpload({
+  photoUrl,
+  customerName,
+  customerId,
   size = 'md',
-  editable = true,
-}: ProfileImageUploadProps) {
-  const { user } = useAuth();
+  editable = false,
+  onPhotoUploaded,
+}: CustomerPhotoUploadProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const targetUserId = userId || user?.id;
-
-  // Fetch avatar_url from profiles to ensure persistence
-  const { data: profileData } = useQuery({
-    queryKey: ['profile-avatar', targetUserId],
-    queryFn: async () => {
-      if (!targetUserId) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('user_id', targetUserId)
-        .maybeSingle();
-      if (error) return null;
-      return data;
-    },
-    enabled: !!targetUserId,
-  });
-
-  const sizeClasses = {
-    sm: 'w-12 h-12',
-    md: 'w-16 h-16',
-    lg: 'w-20 h-20',
-  };
-
-  const iconSizes = {
-    sm: 'w-5 h-5',
-    md: 'w-8 h-8',
-    lg: 'w-10 h-10',
-  };
-
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !targetUserId) return;
+    if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
       toast({ title: 'Error', description: 'Image must be less than 2MB', variant: 'destructive' });
       return;
     }
-
     if (!file.type.startsWith('image/')) {
       toast({ title: 'Error', description: 'Please select an image file', variant: 'destructive' });
       return;
@@ -77,32 +47,22 @@ export function ProfileImageUpload({
 
     try {
       const fileExt = file.name.split('.').pop();
-      const filePath = `${targetUserId}/avatar.${fileExt}`;
+      const targetId = customerId || `temp_${Date.now()}`;
+      const filePath = `${targetId}/photo.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('profile-images')
+        .from('customer-kyc')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: publicUrl } = supabase.storage
-        .from('profile-images')
+        .from('customer-kyc')
         .getPublicUrl(filePath);
 
-      const urlWithTimestamp = `${publicUrl.publicUrl}?t=${Date.now()}`;
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: urlWithTimestamp })
-        .eq('user_id', targetUserId);
-
-      if (updateError) throw updateError;
-
-      queryClient.invalidateQueries({ queryKey: ['agents'] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      queryClient.invalidateQueries({ queryKey: ['profile-avatar', targetUserId] });
-
-      toast({ title: 'Success', description: 'Profile image updated' });
+      const url = `${publicUrl.publicUrl}?t=${Date.now()}`;
+      onPhotoUploaded?.(url);
+      toast({ title: 'Success', description: 'Photo uploaded' });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Upload failed', variant: 'destructive' });
       setPreviewUrl(null);
@@ -111,7 +71,7 @@ export function ProfileImageUpload({
     }
   };
 
-  const displayUrl = previewUrl || propAvatarUrl || profileData?.avatar_url;
+  const displayUrl = previewUrl || photoUrl;
 
   return (
     <div className="relative inline-block">
@@ -126,16 +86,11 @@ export function ProfileImageUpload({
         {uploading ? (
           <Loader2 className={cn('text-primary-foreground animate-spin', iconSizes[size])} />
         ) : displayUrl ? (
-          <img
-            src={displayUrl}
-            alt={userName || 'Profile'}
-            className="w-full h-full object-cover"
-          />
+          <img src={displayUrl} alt={customerName || 'Customer'} className="w-full h-full object-cover" />
         ) : (
           <User className={cn('text-primary-foreground', iconSizes[size])} />
         )}
       </div>
-
       {editable && (
         <>
           <div
@@ -144,13 +99,7 @@ export function ProfileImageUpload({
           >
             <Camera className="w-3 h-3 text-primary-foreground" />
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileSelect}
-          />
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
         </>
       )}
     </div>

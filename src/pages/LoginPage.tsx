@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Phone, Lock, Loader2, Moon, Sun, Shield, TrendingUp, Users } from 'lucide-react';
+import { Phone, Lock, Loader2, Shield, TrendingUp, Users } from 'lucide-react';
 import { z } from 'zod';
+import { AppLogo } from '@/components/AppLogo';
 
 const loginSchema = z.object({
   mobile: z.string().min(10, 'Mobile number must be 10 digits').max(10, 'Mobile number must be 10 digits').regex(/^\d+$/, 'Only digits allowed'),
@@ -134,12 +135,7 @@ export default function LoginPage() {
         <div className="flex-shrink-0 pt-12 pb-6 px-6 text-center">
           {/* Logo */}
           <div className="relative inline-block mb-6">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30">
-              <span className="text-3xl font-bold text-primary-foreground">VVL</span>
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-success flex items-center justify-center shadow-md">
-              <Shield className="w-3.5 h-3.5 text-success-foreground" />
-            </div>
+            <AppLogo size="xl" className="shadow-lg shadow-primary/30" />
           </div>
 
           <h1 className="text-2xl font-bold text-foreground mb-1">
