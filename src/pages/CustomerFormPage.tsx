@@ -14,6 +14,8 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { CustomerPhotoUpload } from '@/components/customers/CustomerPhotoUpload';
+import { KycFileUpload } from '@/components/customers/KycFileUpload';
 import {
   Select,
   SelectContent,
@@ -69,6 +71,9 @@ export default function CustomerFormPage() {
     bank_name: string;
     bank_account_number: string;
     ifsc_code: string;
+    photo_url: string;
+    pan_file_url: string;
+    aadhaar_file_url: string;
   }>({
     name: '',
     mobile: '',
@@ -83,6 +88,9 @@ export default function CustomerFormPage() {
     bank_name: '',
     bank_account_number: '',
     ifsc_code: '',
+    photo_url: '',
+    pan_file_url: '',
+    aadhaar_file_url: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -105,6 +113,9 @@ export default function CustomerFormPage() {
         bank_name: (existingCustomer as any).bank_name || '',
         bank_account_number: (existingCustomer as any).bank_account_number || '',
         ifsc_code: (existingCustomer as any).ifsc_code || '',
+        photo_url: (existingCustomer as any).photo_url || '',
+        pan_file_url: (existingCustomer as any).pan_file_url || '',
+        aadhaar_file_url: (existingCustomer as any).aadhaar_file_url || '',
       });
     }
   }, [existingCustomer, user?.id]);
@@ -160,6 +171,9 @@ export default function CustomerFormPage() {
         bank_name: formData.bank_name || null,
         bank_account_number: formData.bank_account_number || null,
         ifsc_code: formData.ifsc_code || null,
+        photo_url: formData.photo_url || null,
+        pan_file_url: formData.pan_file_url || null,
+        aadhaar_file_url: formData.aadhaar_file_url || null,
       };
 
       if (isEdit) {
@@ -231,6 +245,22 @@ export default function CustomerFormPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-section space-y-4">
             <h3 className="font-semibold text-foreground">Customer Details</h3>
+
+            {/* Customer Photo */}
+            <div className="flex items-center gap-4">
+              <CustomerPhotoUpload
+                photoUrl={formData.photo_url || null}
+                customerName={formData.name}
+                customerId={id}
+                size="lg"
+                editable={true}
+                onPhotoUploaded={(url) => setFormData({ ...formData, photo_url: url })}
+              />
+              <div className="text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Customer Photo</p>
+                <p className="text-xs">Tap to upload</p>
+              </div>
+            </div>
 
             <div className="space-y-2">
               <Label>Full Name</Label>
@@ -374,6 +404,13 @@ export default function CustomerFormPage() {
                       onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase().slice(0, 10) })}
                       className="touch-input"
                     />
+                    <KycFileUpload
+                      label="PAN Card"
+                      fileUrl={formData.pan_file_url || null}
+                      customerId={id}
+                      fieldName="pan"
+                      onFileUploaded={(url) => setFormData({ ...formData, pan_file_url: url })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Aadhaar Number</Label>
@@ -384,6 +421,13 @@ export default function CustomerFormPage() {
                       value={formData.aadhaar_number}
                       onChange={(e) => setFormData({ ...formData, aadhaar_number: e.target.value.replace(/\D/g, '').slice(0, 12) })}
                       className="touch-input"
+                    />
+                    <KycFileUpload
+                      label="Aadhaar Card"
+                      fileUrl={formData.aadhaar_file_url || null}
+                      customerId={id}
+                      fieldName="aadhaar"
+                      onFileUploaded={(url) => setFormData({ ...formData, aadhaar_file_url: url })}
                     />
                   </div>
                   <div className="space-y-2">

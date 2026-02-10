@@ -174,18 +174,30 @@ export default function CustomerDetailPage() {
         {/* Customer Info Card */}
         <div className="form-section">
           <div className="flex items-start justify-between mb-4">
-            <div>
-              <h2 className="text-xl font-bold text-foreground">{customer.name}</h2>
-              <span
-                className={cn(
-                  'status-badge mt-2',
-                  customer.status === 'active' && 'status-active',
-                  customer.status === 'closed' && 'status-closed',
-                  customer.status === 'defaulted' && 'status-defaulted'
+            <div className="flex items-center gap-3">
+              {/* Customer Photo */}
+              <div className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary to-primary/70 flex-shrink-0">
+                {(customer as any).photo_url ? (
+                  <img src={(customer as any).photo_url} alt={customer.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-lg font-bold text-primary-foreground">
+                    {customer.name.charAt(0).toUpperCase()}
+                  </span>
                 )}
-              >
-                {customer.status}
-              </span>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-foreground">{customer.name}</h2>
+                <span
+                  className={cn(
+                    'status-badge mt-1',
+                    customer.status === 'active' && 'status-active',
+                    customer.status === 'closed' && 'status-closed',
+                    customer.status === 'defaulted' && 'status-defaulted'
+                  )}
+                >
+                  {customer.status}
+                </span>
+              </div>
             </div>
             <div className="flex gap-2">
               <Link to={`/customers/${id}/edit`}>

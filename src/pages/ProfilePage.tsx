@@ -5,7 +5,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { User, Shield, LogOut, Info, Moon, Sun, Users, Settings, Heart, Building2, Code, ExternalLink, Zap, TrendingUp, Wallet } from 'lucide-react';
+import { User, Shield, LogOut, Info, Moon, Sun, Users, Settings, Heart, Code, ExternalLink, Zap, TrendingUp, Wallet } from 'lucide-react';
+import { AppLogo } from '@/components/AppLogo';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { FeaturesManagement } from '@/components/admin/FeaturesManagement';
 import { FundManagement } from '@/components/admin/FundManagement';
@@ -163,8 +164,8 @@ function AboutTab() {
     <div className="space-y-6 max-w-lg mx-auto">
       {/* App Header */}
       <div className="text-center">
-        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30 mb-4">
-          <span className="text-2xl font-bold text-primary-foreground">VVL</span>
+        <div className="w-20 h-20 mx-auto rounded-2xl overflow-hidden shadow-lg shadow-primary/30 mb-4">
+          <AppLogo size="xl" />
         </div>
         <h1 className="text-2xl font-bold text-foreground">VVL Enterprises</h1>
         <p className="text-muted-foreground text-sm mt-1">Finance Management System</p>
@@ -180,7 +181,7 @@ function AboutTab() {
       <div className="form-section">
         <div className="flex items-start gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-7 h-7 text-primary" />
+            <AppLogo size="md" />
           </div>
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Powered By</p>
