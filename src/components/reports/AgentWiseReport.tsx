@@ -196,7 +196,7 @@ export function AgentWiseReport() {
     if (!agentData || agentData.length === 0) return;
 
     const headers = [
-      'Agent Name',
+      'Staff Name',
       'Customers',
       'Target',
       'Collected',
@@ -218,7 +218,7 @@ export function AgentWiseReport() {
     ]);
 
     const csvContent = [
-      `Agent-wise Report (${fromDate} to ${toDate})`,
+      `Staff-wise Report (${fromDate} to ${toDate})`,
       '',
       headers.join(','),
       ...rows.map((r) => r.join(',')),
@@ -230,7 +230,7 @@ export function AgentWiseReport() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `agent-report-${fromDate}-to-${toDate}.csv`;
+    link.download = `staff-report-${fromDate}-to-${toDate}.csv`;
     link.click();
   };
 

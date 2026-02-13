@@ -38,9 +38,9 @@ export function AgentPerformanceCard({ agents, isLoading }: AgentPerformanceCard
       <div className="form-section">
         <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
           <User className="w-5 h-5 text-primary" />
-          Agent Performance
+          Staff Performance
         </h3>
-        <p className="text-center text-muted-foreground py-8">No agent data available</p>
+        <p className="text-center text-muted-foreground py-8">No staff data available</p>
       </div>
     );
   }
@@ -53,7 +53,7 @@ export function AgentPerformanceCard({ agents, isLoading }: AgentPerformanceCard
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-foreground flex items-center gap-2">
           <User className="w-5 h-5 text-primary" />
-          Agent Performance - Today
+          Staff Performance
         </h3>
         <div className="text-right">
           <span className="text-sm text-success font-medium">

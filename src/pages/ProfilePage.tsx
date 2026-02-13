@@ -82,7 +82,7 @@ function DetailsTab() {
             <h2 className="text-lg font-semibold text-foreground">{user?.email?.split('@')[0]}</h2>
             <div className="flex items-center gap-2 mt-1">
               <Shield className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium capitalize">{role}</span>
+              <span className="text-sm text-primary font-medium capitalize">{role === 'agent' ? 'Staff' : role}</span>
             </div>
           </div>
         </div>
