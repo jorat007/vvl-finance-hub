@@ -183,77 +183,178 @@ export default function CustomerFormPage() {
     setLoading(true);
 
     try {
-      const customerData: any = {
-        name: formData.name,
-        mobile: formData.mobile,
-        area: formData.area,
-        loan_amount: loanAmount,
-        daily_amount: dailyAmount,
-        start_date: formData.start_date,
-        end_date: formData.end_date || null,
-        status: formData.status,
-        assigned_agent_id: formData.assigned_agent_id || user?.id || null,
-        pan_number: formData.pan_number || null,
-        aadhaar_number: formData.aadhaar_number || null,
-        bank_name: formData.bank_name || null,
-        bank_account_number: formData.bank_account_number || null,
-        ifsc_code: formData.ifsc_code || null,
-        photo_url: formData.photo_url || null,
-        pan_file_url: formData.pan_file_url || null,
-        aadhaar_file_url: formData.aadhaar_file_url || null,
-        other_file_url: formData.other_file_url || null,
-        other_file_name: formData.other_file_name || null,
-      };
-
       if (isEdit) {
+        // Update existing customer
+        const customerData: any = {
+          name: formData.name,
+          mobile: formData.mobile,
+          area: formData.area,
+          loan_amount: loanAmount,
+          daily_amount: dailyAmount,
+          start_date: formData.start_date,
+          end_date: formData.end_date || null,
+          status: formData.status,
+          assigned_agent_id: formData.assigned_agent_id || user?.id || null,
+          pan_number: formData.pan_number || null,
+          aadhaar_number: formData.aadhaar_number || null,
+          bank_name: formData.bank_name || null,
+          bank_account_number: formData.bank_account_number || null,
+          ifsc_code: formData.ifsc_code || null,
+          photo_url: formData.photo_url || null,
+          pan_file_url: formData.pan_file_url || null,
+          aadhaar_file_url: formData.aadhaar_file_url || null,
+          other_file_url: formData.other_file_url || null,
+          other_file_name: formData.other_file_name || null,
+        };
+
         await updateCustomer.mutateAsync({ id, ...customerData });
         toast({
           title: 'Customer Updated',
           description: 'Customer details have been updated successfully.',
         });
       } else {
-        const result = await createCustomer.mutateAsync(customerData);
+        // NEW CUSTOMER FLOW: Check if mobile already exists
+        const { data: existingByMobile } = await supabase
+          .from('customers')
+          .select('id, name, mobile, status')
+          .eq('mobile', formData.mobile)
+          .eq('is_deleted', false)
+          .maybeSingle();
 
-        // Create loan record + fund transaction
-        if (result?.id) {
-          // Create loan record
-          await supabase.from('loans').insert({
-            customer_id: result.id,
+        let customerId: string;
+
+        if (existingByMobile) {
+          // Customer exists - check for active loan
+          const { data: activeLoan } = await supabase
+            .from('loans')
+            .select('id, status')
+            .eq('customer_id', existingByMobile.id)
+            .eq('status', 'active')
+            .eq('is_deleted', false)
+            .maybeSingle();
+
+          if (activeLoan) {
+            toast({
+              variant: 'destructive',
+              title: 'Active Loan Exists',
+              description: `Customer "${existingByMobile.name}" (${existingByMobile.mobile}) already has an active loan. Complete the previous loan before creating a new one.`,
+            });
+            setLoading(false);
+            return;
+          }
+
+          // No active loan - create new loan for existing customer
+          customerId = existingByMobile.id;
+
+          // Update customer details with latest info
+          await supabase
+            .from('customers')
+            .update({
+              name: formData.name,
+              area: formData.area,
+              loan_amount: loanAmount,
+              daily_amount: dailyAmount,
+              start_date: formData.start_date,
+              end_date: formData.end_date || null,
+              status: 'active',
+              assigned_agent_id: formData.assigned_agent_id || user?.id || null,
+              pan_number: formData.pan_number || null,
+              aadhaar_number: formData.aadhaar_number || null,
+              bank_name: formData.bank_name || null,
+              bank_account_number: formData.bank_account_number || null,
+              ifsc_code: formData.ifsc_code || null,
+              photo_url: formData.photo_url || null,
+              pan_file_url: formData.pan_file_url || null,
+              aadhaar_file_url: formData.aadhaar_file_url || null,
+              other_file_url: formData.other_file_url || null,
+              other_file_name: formData.other_file_name || null,
+            })
+            .eq('id', customerId);
+
+          toast({
+            title: 'New Loan Created',
+            description: `New loan created for existing customer "${existingByMobile.name}".`,
+          });
+        } else {
+          // Brand new customer
+          const customerData: any = {
+            name: formData.name,
+            mobile: formData.mobile,
+            area: formData.area,
             loan_amount: loanAmount,
             daily_amount: dailyAmount,
             start_date: formData.start_date,
             end_date: formData.end_date || null,
             status: 'active',
-            created_by: user!.id,
-          });
+            assigned_agent_id: formData.assigned_agent_id || user?.id || null,
+            pan_number: formData.pan_number || null,
+            aadhaar_number: formData.aadhaar_number || null,
+            bank_name: formData.bank_name || null,
+            bank_account_number: formData.bank_account_number || null,
+            ifsc_code: formData.ifsc_code || null,
+            photo_url: formData.photo_url || null,
+            pan_file_url: formData.pan_file_url || null,
+            aadhaar_file_url: formData.aadhaar_file_url || null,
+            other_file_url: formData.other_file_url || null,
+            other_file_name: formData.other_file_name || null,
+          };
 
-          // Deduct from fund on new loan creation
-          const { error: fundError } = await supabase.from('fund_transactions').insert({
-            amount: loanAmount,
-            type: 'loan_disbursement',
-            description: `Loan disbursed to ${formData.name}`,
-            reference_table: 'customers',
-            reference_id: result.id,
-            created_by: user!.id,
-          });
-
-          if (fundError) {
-            toast({
-              variant: 'destructive',
-              title: 'Warning',
-              description: 'Customer created but fund transaction failed. Please add the transaction manually.',
-            });
+          const result = await createCustomer.mutateAsync(customerData);
+          if (!result?.id) {
+            throw new Error('Failed to create customer');
           }
+          customerId = result.id;
 
-          queryClient.invalidateQueries({ queryKey: ['fund-balance'] });
-          queryClient.invalidateQueries({ queryKey: ['fund-transactions'] });
+          toast({
+            title: 'Customer Added',
+            description: 'New customer has been added successfully.',
+          });
         }
 
-        toast({
-          title: 'Customer Added',
-          description: 'New customer has been added successfully.',
+        // Create loan record for the customer
+        const { error: loanError } = await supabase.from('loans').insert({
+          customer_id: customerId,
+          loan_amount: loanAmount,
+          daily_amount: dailyAmount,
+          start_date: formData.start_date,
+          end_date: formData.end_date || null,
+          status: 'active',
+          created_by: user!.id,
         });
+
+        if (loanError) {
+          console.error('Loan creation error:', loanError);
+          toast({
+            variant: 'destructive',
+            title: 'Warning',
+            description: 'Customer saved but loan record creation failed. Please contact admin.',
+          });
+        }
+
+        // Deduct from fund on new loan creation
+        const { error: fundError } = await supabase.from('fund_transactions').insert({
+          amount: loanAmount,
+          type: 'loan_disbursement',
+          description: `Loan disbursed to ${formData.name}`,
+          reference_table: 'customers',
+          reference_id: customerId,
+          created_by: user!.id,
+        });
+
+        if (fundError) {
+          toast({
+            variant: 'destructive',
+            title: 'Warning',
+            description: 'Loan created but fund transaction failed. Please add the transaction manually.',
+          });
+        }
+
+        queryClient.invalidateQueries({ queryKey: ['fund-balance'] });
+        queryClient.invalidateQueries({ queryKey: ['fund-transactions'] });
       }
+
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       navigate('/customers');
     } catch (error: unknown) {
       const { getUserFriendlyError } = await import('@/lib/errorMessages');
@@ -361,7 +462,7 @@ export default function CustomerFormPage() {
                   }
                 >
                   <SelectTrigger className="touch-input">
-                    <SelectValue placeholder="Select agent" />
+                    <SelectValue placeholder="Select staff" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="admin">Admin (Default)</SelectItem>
@@ -437,24 +538,26 @@ export default function CustomerFormPage() {
               </p>
             )}
 
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value: 'active' | 'closed' | 'defaulted') =>
-                  setFormData({ ...formData, status: value })
-                }
-              >
-                <SelectTrigger className="touch-input">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
-                  <SelectItem value="defaulted">Defaulted</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {!isEdit && (
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: 'active' | 'closed' | 'defaulted') =>
+                    setFormData({ ...formData, status: value })
+                  }
+                >
+                  <SelectTrigger className="touch-input">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                    <SelectItem value="defaulted">Defaulted</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {/* KYC Details - Optional */}

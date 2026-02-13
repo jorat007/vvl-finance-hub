@@ -10,6 +10,9 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Search, Check } from 'lucide-react';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import {
   Command,
   CommandEmpty,
@@ -39,6 +42,7 @@ export default function PaymentFormPage() {
   const [searchParams] = useSearchParams();
   const preselectedCustomer = searchParams.get('customer');
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: customers } = useCustomers();
   const createPayment = useCreatePayment();
@@ -67,6 +71,24 @@ export default function PaymentFormPage() {
 
   const selectedCustomer = customers?.find((c) => c.id === formData.customer_id);
 
+  // Fetch active loan for the selected customer
+  const { data: activeLoan } = useQuery({
+    queryKey: ['active-loan', formData.customer_id],
+    queryFn: async () => {
+      if (!formData.customer_id) return null;
+      const { data, error } = await supabase
+        .from('loans')
+        .select('*')
+        .eq('customer_id', formData.customer_id)
+        .eq('status', 'active')
+        .eq('is_deleted', false)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!formData.customer_id && !!user,
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -93,11 +115,22 @@ export default function PaymentFormPage() {
       return;
     }
 
+    // Warn if no active loan found
+    if (!activeLoan) {
+      toast({
+        variant: 'destructive',
+        title: 'No Active Loan',
+        description: 'This customer has no active loan. Payments can only be recorded against active loans.',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       await createPayment.mutateAsync({
         customer_id: formData.customer_id,
+        loan_id: activeLoan.id,
         date: formData.date,
         amount: Math.round((parseFloat(formData.amount) || 0) * 100) / 100,
         mode: formData.mode,
@@ -193,6 +226,23 @@ export default function PaymentFormPage() {
               </Popover>
               {errors.customer_id && <p className="text-destructive text-sm">{errors.customer_id}</p>}
             </div>
+
+            {/* Show active loan info */}
+            {selectedCustomer && activeLoan && (
+              <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                <p className="text-muted-foreground">
+                  Active Loan #{activeLoan.loan_number} • ₹{Number(activeLoan.loan_amount).toLocaleString('en-IN')}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Daily: ₹{Number(activeLoan.daily_amount).toLocaleString('en-IN')} • From: {new Date(activeLoan.start_date).toLocaleDateString('en-IN')}
+                </p>
+              </div>
+            )}
+            {selectedCustomer && !activeLoan && (
+              <div className="bg-destructive/10 rounded-lg p-3 text-sm text-destructive">
+                No active loan found for this customer.
+              </div>
+            )}
           </div>
 
           {/* Payment Details */}
@@ -221,9 +271,9 @@ export default function PaymentFormPage() {
                 className="touch-input text-lg font-semibold"
               />
               {errors.amount && <p className="text-destructive text-sm">{errors.amount}</p>}
-              {selectedCustomer && (
+              {activeLoan && (
                 <p className="text-xs text-muted-foreground">
-                  Daily amount: ₹{Number(selectedCustomer.daily_amount).toLocaleString('en-IN')}
+                  Daily amount: ₹{Number(activeLoan.daily_amount).toLocaleString('en-IN')}
                 </p>
               )}
             </div>
