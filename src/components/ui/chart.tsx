@@ -58,6 +58,15 @@ const ChartContainer = React.forwardRef<
 });
 ChartContainer.displayName = "Chart";
 
+function sanitizeColorValue(color: string): string {
+  const validColorRegex = /^(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|[a-zA-Z]+)$/;
+  return validColorRegex.test(color.trim()) ? color.trim() : 'transparent';
+}
+
+function sanitizeCssKey(key: string): string {
+  return key.replace(/[^a-zA-Z0-9_-]/g, '');
+}
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(([_, config]) => config.theme || config.color);
 
@@ -75,7 +84,7 @@ ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
     const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
+    return color ? `  --color-${sanitizeCssKey(key)}: ${sanitizeColorValue(color)};` : null;
   })
   .join("\n")}
 }

@@ -187,7 +187,7 @@ export default function CustomerFormPage() {
 
         // Deduct from fund on new loan creation
         if (result?.id) {
-          await supabase.from('fund_transactions').insert({
+          const { error: fundError } = await supabase.from('fund_transactions').insert({
             amount: loanAmount,
             type: 'loan_disbursement',
             description: `Loan disbursed to ${formData.name}`,
@@ -195,6 +195,15 @@ export default function CustomerFormPage() {
             reference_id: result.id,
             created_by: user!.id,
           });
+
+          if (fundError) {
+            toast({
+              variant: 'destructive',
+              title: 'Warning',
+              description: 'Customer created but fund transaction failed. Please add the transaction manually.',
+            });
+          }
+
           queryClient.invalidateQueries({ queryKey: ['fund-balance'] });
           queryClient.invalidateQueries({ queryKey: ['fund-transactions'] });
         }
