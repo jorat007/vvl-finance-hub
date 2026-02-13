@@ -4,7 +4,9 @@ import { MainLayout } from '@/components/MainLayout';
 import { useCustomerWithBalance, useCustomerPayments, useDeleteCustomer, useUpdatePayment, Payment } from '@/hooks/useData';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissionChecker } from '@/hooks/usePermissions';
-import { ArrowLeft, Phone, MapPin, Calendar, Edit, Trash2, Plus, X, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, Edit, Trash2, Plus, X, Check, Loader2, Lock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -44,6 +46,8 @@ export default function CustomerDetailPage() {
   const { data: payments, isLoading: paymentsLoading } = useCustomerPayments(id);
   const deleteCustomer = useDeleteCustomer();
   const updatePayment = useUpdatePayment();
+  const queryClient = useQueryClient();
+  const [closingLoan, setClosingLoan] = useState(false);
 
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const [editFormData, setEditFormData] = useState({
@@ -275,6 +279,73 @@ export default function CustomerDetailPage() {
           <p className="text-sm text-muted-foreground mt-4 text-center">
             Daily Amount: ₹{Number(customer.daily_amount).toLocaleString('en-IN')}
           </p>
+
+          {/* Loan Display ID */}
+          {(customer as any).active_loan?.loan_display_id && (
+            <div className="mt-3 p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
+              <p className="text-xs text-muted-foreground">Loan / Agreement ID</p>
+              <p className="text-lg font-bold text-primary tracking-wider">
+                {(customer as any).active_loan.loan_display_id}
+              </p>
+            </div>
+          )}
+
+          {/* Close Loan Button */}
+          {(isAdmin || isManager) && (customer as any).active_loan && customer.status === 'active' && (
+            <div className="mt-3">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="w-full border-warning text-warning hover:bg-warning/10" disabled={closingLoan}>
+                    <Lock className="w-4 h-4 mr-2" />
+                    Close Loan
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Close Loan</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to close this loan? This will mark the loan as completed.
+                      The customer can then be issued a new loan if needed.
+                      {customer.balance > 0 && (
+                        <span className="block mt-2 font-medium text-warning">
+                          Note: Outstanding balance of ₹{customer.balance.toLocaleString('en-IN')} remaining.
+                        </span>
+                      )}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-warning text-warning-foreground hover:bg-warning/90"
+                      onClick={async () => {
+                        setClosingLoan(true);
+                        try {
+                          const activeLoan = (customer as any).active_loan;
+                          await supabase
+                            .from('loans')
+                            .update({ status: 'closed', end_date: new Date().toISOString().split('T')[0] })
+                            .eq('id', activeLoan.id);
+                          await supabase
+                            .from('customers')
+                            .update({ status: 'closed' })
+                            .eq('id', customer.id);
+                          queryClient.invalidateQueries({ queryKey: ['customer', id] });
+                          queryClient.invalidateQueries({ queryKey: ['customers'] });
+                          toast({ title: 'Loan Closed', description: 'Loan has been closed successfully.' });
+                        } catch {
+                          toast({ variant: 'destructive', title: 'Error', description: 'Failed to close loan.' });
+                        } finally {
+                          setClosingLoan(false);
+                        }
+                      }}
+                    >
+                      Confirm Close
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
         </div>
 
         {/* Payment Ledger */}

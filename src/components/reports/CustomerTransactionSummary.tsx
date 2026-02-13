@@ -75,7 +75,7 @@ export function CustomerTransactionSummary() {
     return days.map(day => {
       const dateStr = format(day, 'yyyy-MM-dd');
       const dayPayments = customerPayments.filter(p => p.date === dateStr);
-      const paidPayment = dayPayments.find(p => p.status === 'paid');
+      const paidPayments = dayPayments.filter(p => p.status === 'paid');
       const promisedPayment = dayPayments.find(p => p.promised_date);
       const notPaidPayment = dayPayments.find(p => p.status === 'not_paid');
 
@@ -83,10 +83,10 @@ export function CustomerTransactionSummary() {
       let amount = 0;
       let remarks = '';
 
-      if (paidPayment) {
+      if (paidPayments.length > 0) {
         status = 'paid';
-        amount = Number(paidPayment.amount);
-        remarks = paidPayment.remarks || '';
+        amount = paidPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+        remarks = paidPayments.map(p => p.remarks).filter(Boolean).join('; ');
       } else if (promisedPayment) {
         status = 'promised';
         remarks = promisedPayment.remarks || '';
@@ -241,7 +241,7 @@ export function CustomerTransactionSummary() {
               <SelectItem value="all">All (Current loan data)</SelectItem>
               {loans.map((loan: any) => (
                 <SelectItem key={loan.id} value={loan.id}>
-                  Loan #{loan.loan_number} - ₹{Number(loan.loan_amount).toLocaleString('en-IN')} ({loan.status})
+                  {loan.loan_display_id || `Loan #${loan.loan_number}`} - ₹{Number(loan.loan_amount).toLocaleString('en-IN')} ({loan.status})
                 </SelectItem>
               ))}
             </SelectContent>

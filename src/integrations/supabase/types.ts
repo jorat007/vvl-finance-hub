@@ -230,6 +230,7 @@ export type Database = {
           id: string
           is_deleted: boolean | null
           loan_amount: number
+          loan_display_id: string | null
           loan_number: number
           start_date: string
           status: string
@@ -246,6 +247,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean | null
           loan_amount?: number
+          loan_display_id?: string | null
           loan_number?: number
           start_date?: string
           status?: string
@@ -262,6 +264,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean | null
           loan_amount?: number
+          loan_display_id?: string | null
           loan_number?: number
           start_date?: string
           status?: string

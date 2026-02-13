@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
+import { numberToWords } from '@/lib/numberToWords';
 import { useQueryClient } from '@tanstack/react-query';
 import { CustomerPhotoUpload } from '@/components/customers/CustomerPhotoUpload';
 import { KycFileUpload } from '@/components/customers/KycFileUpload';
@@ -493,20 +494,12 @@ export default function CustomerFormPage() {
                 onChange={(e) => setFormData({ ...formData, loan_amount: e.target.value })}
                 className="touch-input"
               />
+              {parseFloat(formData.loan_amount) > 0 && (
+                <p className="text-xs text-primary font-medium">
+                  ₹ {numberToWords(parseFloat(formData.loan_amount))} Only
+                </p>
+              )}
               {errors.loan_amount && <p className="text-destructive text-sm">{errors.loan_amount}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Daily Amount (₹)</Label>
-              <Input
-                type="number"
-                inputMode="decimal"
-                placeholder="Enter daily collection amount"
-                value={formData.daily_amount}
-                onChange={(e) => setFormData({ ...formData, daily_amount: e.target.value })}
-                className="touch-input"
-              />
-              {errors.daily_amount && <p className="text-destructive text-sm">{errors.daily_amount}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -537,6 +530,24 @@ export default function CustomerFormPage() {
                 Tenure: {Math.max(0, Math.floor((new Date(formData.end_date).getTime() - new Date(formData.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1)} days
               </p>
             )}
+
+            <div className="space-y-2">
+              <Label>Daily Amount (₹) <span className="text-xs text-muted-foreground">(Auto-calculated)</span></Label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                placeholder="Auto-calculated from loan & tenure"
+                value={formData.daily_amount}
+                onChange={(e) => setFormData({ ...formData, daily_amount: e.target.value })}
+                className="touch-input"
+              />
+              {parseFloat(formData.daily_amount) > 0 && (
+                <p className="text-xs text-primary font-medium">
+                  ₹ {numberToWords(parseFloat(formData.daily_amount))} Only
+                </p>
+              )}
+              {errors.daily_amount && <p className="text-destructive text-sm">{errors.daily_amount}</p>}
+            </div>
 
             {!isEdit && (
               <div className="space-y-2">
