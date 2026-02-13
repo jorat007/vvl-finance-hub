@@ -48,11 +48,12 @@ export function KycFileUpload({ label, fileUrl, customerId, fieldName, onFileUpl
 
       if (uploadError) throw uploadError;
 
-      const { data: publicUrl } = supabase.storage
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('customer-kyc')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 60 * 60); // 1 hour expiry
 
-      const url = `${publicUrl.publicUrl}?t=${Date.now()}`;
+      if (signedUrlError) throw signedUrlError;
+      const url = signedUrlData.signedUrl;
       setUploadedUrl(url);
       onFileUploaded?.(url);
       toast({ title: 'Uploaded', description: `${label} file uploaded successfully` });

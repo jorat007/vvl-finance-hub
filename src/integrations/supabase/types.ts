@@ -55,6 +55,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          aadhaar_file_url: string | null
           aadhaar_number: string | null
           area: string
           assigned_agent_id: string | null
@@ -71,12 +72,15 @@ export type Database = {
           loan_amount: number
           mobile: string
           name: string
+          pan_file_url: string | null
           pan_number: string | null
+          photo_url: string | null
           start_date: string
           status: string
           updated_at: string
         }
         Insert: {
+          aadhaar_file_url?: string | null
           aadhaar_number?: string | null
           area: string
           assigned_agent_id?: string | null
@@ -93,12 +97,15 @@ export type Database = {
           loan_amount?: number
           mobile: string
           name: string
+          pan_file_url?: string | null
           pan_number?: string | null
+          photo_url?: string | null
           start_date?: string
           status?: string
           updated_at?: string
         }
         Update: {
+          aadhaar_file_url?: string | null
           aadhaar_number?: string | null
           area?: string
           assigned_agent_id?: string | null
@@ -115,7 +122,9 @@ export type Database = {
           loan_amount?: number
           mobile?: string
           name?: string
+          pan_file_url?: string | null
           pan_number?: string | null
+          photo_url?: string | null
           start_date?: string
           status?: string
           updated_at?: string
