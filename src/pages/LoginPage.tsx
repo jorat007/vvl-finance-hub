@@ -96,9 +96,7 @@ export default function LoginPage() {
         toast({
           variant: 'destructive',
           title: 'Login Failed',
-          description: error.message === 'Invalid login credentials' 
-            ? 'Invalid mobile number or password. Please try again.'
-            : error.message,
+          description: 'Invalid mobile number or password. Please try again.',
         });
       } else {
         toast({

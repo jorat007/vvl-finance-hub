@@ -64,8 +64,8 @@ export function CustomerPhotoUpload({
       const url = signedUrlData.signedUrl;
       onPhotoUploaded?.(url);
       toast({ title: 'Success', description: 'Photo uploaded' });
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Upload failed', variant: 'destructive' });
+    } catch (_error: unknown) {
+      toast({ title: 'Error', description: 'Failed to upload photo. Please try again.', variant: 'destructive' });
       setPreviewUrl(null);
     } finally {
       setUploading(false);

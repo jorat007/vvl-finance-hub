@@ -127,7 +127,7 @@ export default function CustomerDetailPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.message || 'Failed to update payment.',
+        description: 'Failed to update payment. Please try again.',
       });
     } finally {
       setIsUpdating(false);

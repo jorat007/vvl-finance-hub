@@ -82,9 +82,10 @@ export function FeaturesManagement() {
         description: 'Feature permission has been updated successfully.',
       });
     } catch (error: any) {
+      const { getUserFriendlyError } = await import('@/lib/errorMessages');
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update permission',
+        description: getUserFriendlyError(error),
         variant: 'destructive',
       });
     } finally {

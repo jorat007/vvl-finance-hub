@@ -68,8 +68,9 @@ export function FundManagement() {
       setAmount('');
       setDescription('');
       setIsDialogOpen(false);
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } catch (error: unknown) {
+      const { getUserFriendlyError } = await import('@/lib/errorMessages');
+      toast({ title: 'Error', description: getUserFriendlyError(error), variant: 'destructive' });
     } finally {
       setSaving(false);
     }
