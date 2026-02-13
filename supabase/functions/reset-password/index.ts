@@ -5,6 +5,42 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Simple in-memory rate limiter
+const rateLimitMap = new Map<string, number[]>();
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX = 10; // max 10 resets per hour per admin
+
+function isRateLimited(adminId: string): boolean {
+  const now = Date.now();
+  const timestamps = rateLimitMap.get(adminId) || [];
+  const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  rateLimitMap.set(adminId, recent);
+  if (recent.length >= RATE_LIMIT_MAX) return true;
+  recent.push(now);
+  rateLimitMap.set(adminId, recent);
+  return false;
+}
+
+function validatePasswordStrength(password: string): { valid: boolean; error?: string } {
+  if (password.length < 8) {
+    return { valid: false, error: "Password must be at least 8 characters" };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { valid: false, error: "Password must contain a lowercase letter" };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, error: "Password must contain an uppercase letter" };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, error: "Password must contain a number" };
+  }
+  const common = ["password", "12345678", "qwerty12", "admin123", "abcd1234"];
+  if (common.includes(password.toLowerCase())) {
+    return { valid: false, error: "Password is too common. Choose a stronger one." };
+  }
+  return { valid: true };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -14,7 +50,6 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify the caller is authenticated and is admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -50,6 +85,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Rate limit check
+    if (isRateLimited(caller.id)) {
+      return new Response(JSON.stringify({ error: "Rate limit exceeded. Max 10 password resets per hour." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { user_id, new_password } = await req.json();
 
     if (!user_id || !new_password) {
@@ -59,32 +102,42 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (new_password.length < 6) {
-      return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), {
+    // Strong password validation
+    const validation = validatePasswordStrength(new_password);
+    if (!validation.valid) {
+      return new Response(JSON.stringify({ error: validation.error }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Use service role client to update user password
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
     const { error: updateError } = await adminClient.auth.admin.updateUserById(user_id, {
       password: new_password,
     });
 
     if (updateError) {
-      return new Response(JSON.stringify({ error: updateError.message }), {
+      return new Response(JSON.stringify({ error: "Failed to reset password. Please try again." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Audit log
+    await adminClient.from("audit_logs").insert({
+      user_id: caller.id,
+      table_name: "auth.users",
+      action: "admin_password_reset",
+      record_id: user_id,
+      new_data: { target_user: user_id, reset_by: caller.id },
+    });
+
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal server error';
-    return new Response(JSON.stringify({ error: message }), {
+  } catch (_err: unknown) {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

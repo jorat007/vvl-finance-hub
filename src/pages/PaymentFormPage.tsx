@@ -115,7 +115,7 @@ export default function PaymentFormPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.message || 'Failed to save payment. Please try again.',
+        description: 'Failed to save payment. Please try again.',
       });
     } finally {
       setLoading(false);

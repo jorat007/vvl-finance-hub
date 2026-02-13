@@ -205,11 +205,12 @@ export default function CustomerFormPage() {
         });
       }
       navigate('/customers');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const { getUserFriendlyError } = await import('@/lib/errorMessages');
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.message || 'Failed to save customer. Please try again.',
+        description: getUserFriendlyError(error),
       });
     } finally {
       setLoading(false);

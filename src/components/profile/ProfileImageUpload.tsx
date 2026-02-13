@@ -103,8 +103,8 @@ export function ProfileImageUpload({
       queryClient.invalidateQueries({ queryKey: ['profile-avatar', targetUserId] });
 
       toast({ title: 'Success', description: 'Profile image updated' });
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Upload failed', variant: 'destructive' });
+    } catch (_error: unknown) {
+      toast({ title: 'Error', description: 'Failed to upload image. Please try again.', variant: 'destructive' });
       setPreviewUrl(null);
     } finally {
       setUploading(false);

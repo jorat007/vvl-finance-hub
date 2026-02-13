@@ -220,10 +220,11 @@ export function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['agents'] });
       setIsDialogOpen(false);
       resetForm();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const { getUserFriendlyError } = await import('@/lib/errorMessages');
       toast({
         title: 'Error',
-        description: error.message || 'Failed to save user',
+        description: getUserFriendlyError(error),
         variant: 'destructive',
       });
     } finally {
@@ -233,8 +234,8 @@ export function UserManagement() {
 
   const handleResetPassword = async () => {
     if (!resetPasswordUser || !newPassword) return;
-    if (newPassword.length < 6) {
-      toast({ title: 'Error', description: 'Password must be at least 6 characters', variant: 'destructive' });
+    if (newPassword.length < 8 || !/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      toast({ title: 'Error', description: 'Password must be at least 8 characters with uppercase, lowercase, and a number', variant: 'destructive' });
       return;
     }
 
@@ -262,8 +263,9 @@ export function UserManagement() {
       toast({ title: 'Password Reset', description: `Password updated for ${resetPasswordUser.name}` });
       setResetPasswordUser(null);
       setNewPassword('');
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } catch (error: unknown) {
+      const { getUserFriendlyError } = await import('@/lib/errorMessages');
+      toast({ title: 'Error', description: getUserFriendlyError(error), variant: 'destructive' });
     } finally {
       setResettingPassword(false);
     }

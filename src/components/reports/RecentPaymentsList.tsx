@@ -79,8 +79,8 @@ export function RecentPaymentsList({ payments, isLoading, limit = 10 }: RecentPa
       });
       toast({ title: 'Payment Updated', description: 'Payment has been updated successfully.' });
       setEditingPayment(null);
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message || 'Failed to update payment.' });
+    } catch (_error: unknown) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update payment. Please try again.' });
     } finally {
       setIsUpdating(false);
     }

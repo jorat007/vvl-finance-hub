@@ -57,8 +57,8 @@ export function KycFileUpload({ label, fileUrl, customerId, fieldName, onFileUpl
       setUploadedUrl(url);
       onFileUploaded?.(url);
       toast({ title: 'Uploaded', description: `${label} file uploaded successfully` });
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Upload failed', variant: 'destructive' });
+    } catch (_error: unknown) {
+      toast({ title: 'Error', description: 'Failed to upload file. Please try again.', variant: 'destructive' });
     } finally {
       setUploading(false);
     }
