@@ -1,7 +1,6 @@
 import { MainLayout } from '@/components/MainLayout';
 import { SummaryCard } from '@/components/SummaryCard';
 import { useRoleBasedDashboardStats, useRoleBasedDailyCollections } from '@/hooks/useRoleBasedData';
-import { usePaymentStatusBreakdown } from '@/hooks/useData';
 import { Users, Wallet, TrendingUp, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CollectionChart } from '@/components/reports/CollectionChart';
@@ -12,7 +11,6 @@ export default function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useRoleBasedDashboardStats();
   const [period, setPeriod] = useState<'today' | 'week' | 'month'>('week');
   const { data: dailyData, isLoading: dailyLoading } = useRoleBasedDailyCollections(period);
-  const { data: pieData, isLoading: pieLoading } = usePaymentStatusBreakdown();
 
   return (
     <MainLayout title="Dashboard">
@@ -75,67 +73,7 @@ export default function DashboardPage() {
 
         {/* Collection Trend Chart */}
         <CollectionChart data={dailyData} isLoading={dailyLoading} />
-
-        {/* Pie Chart */}
-        <div className="chart-container">
-          <h3 className="font-semibold text-foreground mb-4">Payment Status</h3>
-          {pieLoading ? (
-            <Skeleton className="h-48 rounded-lg" />
-          ) : (
-            <>
-              <div className="flex items-center justify-center">
-                <div className="w-full" style={{ height: 200 }}>
-                  <PieChartSection pieData={pieData} />
-                </div>
-              </div>
-              <div className="flex justify-center gap-6 mt-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-success" />
-                  <span className="text-sm text-muted-foreground">Paid</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-warning" />
-                  <span className="text-sm text-muted-foreground">Pending</span>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
       </div>
     </MainLayout>
-  );
-}
-
-// Extracted pie chart to keep imports clean
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-
-function PieChartSection({ pieData }: { pieData: any }) {
-  return (
-    <ResponsiveContainer width="100%" height={200}>
-      <PieChart>
-        <Pie
-          data={pieData || []}
-          cx="50%"
-          cy="50%"
-          innerRadius={50}
-          outerRadius={80}
-          paddingAngle={5}
-          dataKey="value"
-          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-        >
-          {(pieData || []).map((entry: any, index: number) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
-          ))}
-        </Pie>
-        <Tooltip
-          formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, '']}
-          contentStyle={{
-            backgroundColor: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
-            borderRadius: '8px',
-          }}
-        />
-      </PieChart>
-    </ResponsiveContainer>
   );
 }
