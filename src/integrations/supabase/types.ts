@@ -66,12 +66,15 @@ export type Database = {
           daily_amount: number
           deleted_at: string | null
           deleted_by: string | null
+          end_date: string | null
           id: string
           ifsc_code: string | null
           is_deleted: boolean | null
           loan_amount: number
           mobile: string
           name: string
+          other_file_name: string | null
+          other_file_url: string | null
           pan_file_url: string | null
           pan_number: string | null
           photo_url: string | null
@@ -91,12 +94,15 @@ export type Database = {
           daily_amount?: number
           deleted_at?: string | null
           deleted_by?: string | null
+          end_date?: string | null
           id?: string
           ifsc_code?: string | null
           is_deleted?: boolean | null
           loan_amount?: number
           mobile: string
           name: string
+          other_file_name?: string | null
+          other_file_url?: string | null
           pan_file_url?: string | null
           pan_number?: string | null
           photo_url?: string | null
@@ -116,12 +122,15 @@ export type Database = {
           daily_amount?: number
           deleted_at?: string | null
           deleted_by?: string | null
+          end_date?: string | null
           id?: string
           ifsc_code?: string | null
           is_deleted?: boolean | null
           loan_amount?: number
           mobile?: string
           name?: string
+          other_file_name?: string | null
+          other_file_url?: string | null
           pan_file_url?: string | null
           pan_number?: string | null
           photo_url?: string | null
@@ -209,6 +218,65 @@ export type Database = {
         }
         Relationships: []
       }
+      loans: {
+        Row: {
+          created_at: string
+          created_by: string
+          customer_id: string
+          daily_amount: number
+          deleted_at: string | null
+          deleted_by: string | null
+          end_date: string | null
+          id: string
+          is_deleted: boolean | null
+          loan_amount: number
+          loan_number: number
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          customer_id: string
+          daily_amount?: number
+          deleted_at?: string | null
+          deleted_by?: string | null
+          end_date?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          loan_amount?: number
+          loan_number?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          customer_id?: string
+          daily_amount?: number
+          deleted_at?: string | null
+          deleted_by?: string | null
+          end_date?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          loan_amount?: number
+          loan_number?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loans_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           agent_id: string
@@ -220,6 +288,7 @@ export type Database = {
           deleted_by: string | null
           id: string
           is_deleted: boolean | null
+          loan_id: string | null
           mode: string
           promised_date: string | null
           remarks: string | null
@@ -235,6 +304,7 @@ export type Database = {
           deleted_by?: string | null
           id?: string
           is_deleted?: boolean | null
+          loan_id?: string | null
           mode?: string
           promised_date?: string | null
           remarks?: string | null
@@ -250,6 +320,7 @@ export type Database = {
           deleted_by?: string | null
           id?: string
           is_deleted?: boolean | null
+          loan_id?: string | null
           mode?: string
           promised_date?: string | null
           remarks?: string | null
@@ -261,6 +332,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
             referencedColumns: ["id"]
           },
         ]

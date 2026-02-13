@@ -3,9 +3,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePermissionChecker } from '@/hooks/usePermissions';
 import { AgentWiseReport } from '@/components/reports/AgentWiseReport';
 import { CustomerWiseReport } from '@/components/reports/CustomerWiseReport';
+import { CustomerTransactionSummary } from '@/components/reports/CustomerTransactionSummary';
 import { FundReport } from '@/components/reports/FundReport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, Wallet } from 'lucide-react';
+import { Users, UserCheck, Wallet, BookOpen } from 'lucide-react';
 
 export default function ReportsPage() {
   const { isAdmin, isManager } = useAuth();
@@ -14,8 +15,9 @@ export default function ReportsPage() {
   const canViewFunds = checkPermission('fund_manage') || checkPermission('fund_view');
 
   const tabs = [
-    ...(canViewAgentReport ? [{ value: 'agents', label: 'Agents', icon: Users }] : []),
+    ...(canViewAgentReport ? [{ value: 'agents', label: 'Staff', icon: Users }] : []),
     { value: 'customers', label: 'Customers', icon: UserCheck },
+    { value: 'ledger', label: 'Ledger', icon: BookOpen },
     ...(canViewFunds ? [{ value: 'funds', label: 'Funds', icon: Wallet }] : []),
   ];
 
@@ -50,6 +52,10 @@ export default function ReportsPage() {
 
           <TabsContent value="customers" className="mt-4">
             <CustomerWiseReport />
+          </TabsContent>
+
+          <TabsContent value="ledger" className="mt-4">
+            <CustomerTransactionSummary />
           </TabsContent>
 
           {canViewFunds && (

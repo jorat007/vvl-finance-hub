@@ -64,6 +64,7 @@ export default function CustomerFormPage() {
     loan_amount: string;
     daily_amount: string;
     start_date: string;
+    end_date: string;
     status: 'active' | 'closed' | 'defaulted';
     assigned_agent_id: string;
     pan_number: string;
@@ -74,6 +75,8 @@ export default function CustomerFormPage() {
     photo_url: string;
     pan_file_url: string;
     aadhaar_file_url: string;
+    other_file_url: string;
+    other_file_name: string;
   }>({
     name: '',
     mobile: '',
@@ -81,6 +84,7 @@ export default function CustomerFormPage() {
     loan_amount: '',
     daily_amount: '',
     start_date: new Date().toISOString().split('T')[0],
+    end_date: '',
     status: 'active',
     assigned_agent_id: user?.id || '',
     pan_number: '',
@@ -91,7 +95,26 @@ export default function CustomerFormPage() {
     photo_url: '',
     pan_file_url: '',
     aadhaar_file_url: '',
+    other_file_url: '',
+    other_file_name: '',
   });
+
+  // Auto-calculate daily amount when loan amount or end date changes
+  useEffect(() => {
+    if (formData.loan_amount && formData.start_date && formData.end_date) {
+      const start = new Date(formData.start_date);
+      const end = new Date(formData.end_date);
+      const diffTime = end.getTime() - start.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      if (diffDays > 0) {
+        const loanAmt = parseFloat(formData.loan_amount) || 0;
+        const daily = Math.round((loanAmt / diffDays) * 100) / 100;
+        if (daily > 0) {
+          setFormData(prev => ({ ...prev, daily_amount: daily.toString() }));
+        }
+      }
+    }
+  }, [formData.loan_amount, formData.start_date, formData.end_date]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -106,6 +129,7 @@ export default function CustomerFormPage() {
         loan_amount: existingCustomer.loan_amount.toString(),
         daily_amount: existingCustomer.daily_amount.toString(),
         start_date: existingCustomer.start_date,
+        end_date: '',
         status: existingCustomer.status,
         assigned_agent_id: existingCustomer.assigned_agent_id || user?.id || '',
         pan_number: (existingCustomer as any).pan_number || '',
@@ -116,6 +140,8 @@ export default function CustomerFormPage() {
         photo_url: (existingCustomer as any).photo_url || '',
         pan_file_url: (existingCustomer as any).pan_file_url || '',
         aadhaar_file_url: (existingCustomer as any).aadhaar_file_url || '',
+        other_file_url: '',
+        other_file_name: '',
       });
     }
   }, [existingCustomer, user?.id]);
@@ -164,6 +190,7 @@ export default function CustomerFormPage() {
         loan_amount: loanAmount,
         daily_amount: dailyAmount,
         start_date: formData.start_date,
+        end_date: formData.end_date || null,
         status: formData.status,
         assigned_agent_id: formData.assigned_agent_id || user?.id || null,
         pan_number: formData.pan_number || null,
@@ -174,6 +201,8 @@ export default function CustomerFormPage() {
         photo_url: formData.photo_url || null,
         pan_file_url: formData.pan_file_url || null,
         aadhaar_file_url: formData.aadhaar_file_url || null,
+        other_file_url: formData.other_file_url || null,
+        other_file_name: formData.other_file_name || null,
       };
 
       if (isEdit) {
@@ -185,8 +214,20 @@ export default function CustomerFormPage() {
       } else {
         const result = await createCustomer.mutateAsync(customerData);
 
-        // Deduct from fund on new loan creation
+        // Create loan record + fund transaction
         if (result?.id) {
+          // Create loan record
+          await supabase.from('loans').insert({
+            customer_id: result.id,
+            loan_amount: loanAmount,
+            daily_amount: dailyAmount,
+            start_date: formData.start_date,
+            end_date: formData.end_date || null,
+            status: 'active',
+            created_by: user!.id,
+          });
+
+          // Deduct from fund on new loan creation
           const { error: fundError } = await supabase.from('fund_transactions').insert({
             amount: loanAmount,
             type: 'loan_disbursement',
@@ -312,7 +353,7 @@ export default function CustomerFormPage() {
             {/* Agent Allocation - Only visible to Admin/Manager */}
             {canAssignAgent && (
               <div className="space-y-2">
-                <Label>Assign to Agent</Label>
+                <Label>Assign to Staff</Label>
                 <Select
                   value={formData.assigned_agent_id || 'admin'}
                   onValueChange={(value) =>
@@ -326,13 +367,13 @@ export default function CustomerFormPage() {
                     <SelectItem value="admin">Admin (Default)</SelectItem>
                     {allAssignableUsers.map((agent) => (
                       <SelectItem key={agent.user_id} value={agent.user_id}>
-                        {agent.name} ({agent.role})
+                        {agent.name} ({agent.role === 'agent' ? 'Staff' : agent.role})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  If no agent selected, customer will be assigned to Admin
+                  If no staff selected, customer will be assigned to Admin
                 </p>
               </div>
             )}
@@ -367,16 +408,34 @@ export default function CustomerFormPage() {
               {errors.daily_amount && <p className="text-destructive text-sm">{errors.daily_amount}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label>Start Date</Label>
-              <Input
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                className="touch-input"
-              />
-              {errors.start_date && <p className="text-destructive text-sm">{errors.start_date}</p>}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Tenure From Date</Label>
+                <Input
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  className="touch-input"
+                />
+                {errors.start_date && <p className="text-destructive text-sm">{errors.start_date}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Tenure To Date</Label>
+                <Input
+                  type="date"
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  className="touch-input"
+                  min={formData.start_date}
+                />
+              </div>
             </div>
+
+            {formData.start_date && formData.end_date && (
+              <p className="text-xs text-muted-foreground">
+                Tenure: {Math.max(0, Math.floor((new Date(formData.end_date).getTime() - new Date(formData.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1)} days
+              </p>
+            )}
 
             <div className="space-y-2">
               <Label>Status</Label>
@@ -467,6 +526,23 @@ export default function CustomerFormPage() {
                       value={formData.ifsc_code}
                       onChange={(e) => setFormData({ ...formData, ifsc_code: e.target.value.toUpperCase().slice(0, 11) })}
                       className="touch-input"
+                    />
+                  </div>
+                  {/* Others File Upload */}
+                  <div className="space-y-2">
+                    <Label>Other Documents</Label>
+                    <Input
+                      placeholder="Document name (e.g., Guarantee Letter)"
+                      value={formData.other_file_name}
+                      onChange={(e) => setFormData({ ...formData, other_file_name: e.target.value })}
+                      className="touch-input"
+                    />
+                    <KycFileUpload
+                      label="Other Document"
+                      fileUrl={formData.other_file_url || null}
+                      customerId={id}
+                      fieldName="other"
+                      onFileUploaded={(url) => setFormData({ ...formData, other_file_url: url })}
                     />
                   </div>
                 </div>

@@ -174,42 +174,33 @@ export function UserManagement() {
           description: 'User details have been updated successfully.',
         });
       } else {
-        // Create new user via signup
+        // Create new user via edge function (prevents session hijack)
         const cleanMobile = formData.mobile.replace(/\D/g, '');
         const email = `${cleanMobile}@vvlenterprises.in`;
 
-        const { data: signupData, error: signupError } = await supabase.auth.signUp({
-          email,
-          password: formData.password,
-          options: {
-            data: {
+        const { data: { session } } = await supabase.auth.getSession();
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({
+              email,
+              password: formData.password,
               name: formData.name,
               mobile: cleanMobile,
               whatsapp_number: formData.whatsapp_number || null,
-              reporting_to: formData.reporting_to,
               role: formData.role,
-            },
-          },
-        });
-
-        if (signupError) throw signupError;
-
-        // If created successfully and not agent, update role
-        if (signupData.user && formData.role !== 'agent') {
-          // Wait a moment for trigger to complete
-          await new Promise((r) => setTimeout(r, 1000));
-
-          const { error: roleError } = await supabase
-            .from('user_roles')
-            .update({ role: formData.role })
-            .eq('user_id', signupData.user.id);
-
-          if (roleError) {
-            if (import.meta.env.DEV) {
-              console.error('Role update error:', roleError);
-            }
+              reporting_to: formData.reporting_to,
+            }),
           }
-        }
+        );
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Failed to create user');
 
         toast({
           title: 'User Created',
@@ -320,7 +311,7 @@ export function UserManagement() {
         <div className="form-section">
           <div className="flex flex-col items-center text-center">
             <p className="text-2xl font-bold text-success">{agentsList.length}</p>
-            <p className="text-xs text-muted-foreground">Agents</p>
+            <p className="text-xs text-muted-foreground">Staff</p>
           </div>
         </div>
       </div>
@@ -433,7 +424,7 @@ export function UserManagement() {
                 <SelectContent>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="agent">Agent</SelectItem>
+                  <SelectItem value="agent">Staff</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -456,7 +447,7 @@ export function UserManagement() {
                   <SelectContent>
                     <SelectItem value="none">Not Assigned</SelectItem>
                     {formData.role === 'agent'
-                      ? managers.map((m) => (
+                    ? managersAndAdmins.filter(m => m.role === 'manager').map((m) => (
                           <SelectItem key={m.user_id} value={m.user_id}>
                             {m.name} (Manager)
                           </SelectItem>
@@ -532,7 +523,7 @@ export function UserManagement() {
                           : 'outline'
                       }
                     >
-                      {user.role}
+                      {user.role === 'agent' ? 'Staff' : user.role}
                     </Badge>
                     <Button
                       variant="ghost"
