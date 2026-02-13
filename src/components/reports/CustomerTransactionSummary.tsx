@@ -62,9 +62,15 @@ export function CustomerTransactionSummary() {
     if (start > end) return [];
 
     const days = eachDayOfInterval({ start, end });
-    const customerPayments = payments.filter(
-      p => p.customer_id === selectedCustomerId
-    );
+    
+    // Filter payments by customer AND by loan_id if a specific loan is selected
+    const customerPayments = payments.filter(p => {
+      if (p.customer_id !== selectedCustomerId) return false;
+      if (selectedLoan && selectedLoanId && selectedLoanId !== 'all') {
+        return p.loan_id === selectedLoanId;
+      }
+      return true;
+    });
 
     return days.map(day => {
       const dateStr = format(day, 'yyyy-MM-dd');
@@ -101,7 +107,7 @@ export function CustomerTransactionSummary() {
         isFuture: day > new Date(),
       };
     });
-  }, [selectedCustomerId, selectedLoanId, loanStartDate, loanEndDate, payments]);
+  }, [selectedCustomerId, selectedLoanId, loanStartDate, loanEndDate, payments, selectedLoan]);
 
   const filteredCustomers = useMemo(() => {
     if (!customers) return [];

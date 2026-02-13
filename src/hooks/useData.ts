@@ -21,6 +21,7 @@ export interface Payment {
   id: string;
   customer_id: string;
   agent_id: string;
+  loan_id: string | null;
   date: string;
   amount: number;
   mode: 'cash' | 'online';
@@ -71,22 +72,42 @@ export function useCustomerWithBalance(customerId: string | undefined) {
 
       if (customerError) throw customerError;
 
-      const { data: payments, error: paymentsError } = await supabase
+      // Get active loan for this customer
+      const { data: activeLoan } = await supabase
+        .from('loans')
+        .select('*')
+        .eq('customer_id', customerId)
+        .eq('status', 'active')
+        .eq('is_deleted', false)
+        .maybeSingle();
+
+      // Calculate balance based on active loan
+      const loanId = activeLoan?.id;
+      const loanAmount = activeLoan ? Number(activeLoan.loan_amount) : Number(customer.loan_amount);
+
+      let paymentsQuery = supabase
         .from('payments')
         .select('amount, status')
         .eq('customer_id', customerId)
-        .eq('status', 'paid');
+        .eq('status', 'paid')
+        .eq('is_deleted', false);
 
+      if (loanId) {
+        paymentsQuery = paymentsQuery.eq('loan_id', loanId);
+      }
+
+      const { data: payments, error: paymentsError } = await paymentsQuery;
       if (paymentsError) throw paymentsError;
 
       const totalPaid = payments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
-      const balance = Number(customer.loan_amount) - totalPaid;
+      const balance = loanAmount - totalPaid;
 
       return {
         ...customer,
         total_paid: totalPaid,
         balance,
-      } as CustomerWithBalance;
+        active_loan: activeLoan,
+      } as CustomerWithBalance & { active_loan: any };
     },
     enabled: !!user && !!customerId,
   });
@@ -104,6 +125,7 @@ export function useCustomerPayments(customerId: string | undefined) {
         .from('payments')
         .select('*')
         .eq('customer_id', customerId)
+        .eq('is_deleted', false)
         .order('date', { ascending: false });
 
       if (error) throw error;
@@ -334,12 +356,13 @@ export function useCreatePayment() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (payment: Omit<Payment, 'id' | 'created_at' | 'agent_id'>) => {
+    mutationFn: async (payment: Omit<Payment, 'id' | 'created_at' | 'agent_id'> & { loan_id?: string | null }) => {
       const { data, error } = await supabase
         .from('payments')
         .insert({
           ...payment,
           agent_id: user!.id,
+          loan_id: payment.loan_id || null,
         })
         .select()
         .single();
