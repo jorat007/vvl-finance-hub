@@ -172,11 +172,11 @@ function AboutTab() {
         <p className="text-xs text-muted-foreground/70 mt-1">Version 2.0 • Phase II</p>
       </div>
 
-      {/* Illustration */}
+      {/* Illustration 
       <div className="text-primary py-4">
         <AboutIllustration />
       </div>
-
+*/}
       {/* Owner Info */}
       <div className="form-section">
         <div className="flex items-start gap-4">
