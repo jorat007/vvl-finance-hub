@@ -131,11 +131,10 @@ export default function LoginPage() {
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header Section */}
         <div className="flex-shrink-0 pt-12 pb-6 px-6 text-center">
-          {/* Logo 
           <div className="relative inline-block mb-6">
-            <AppLogo size="xl" className="shadow-lg shadow-primary/30" />
+            <AppLogo size="lg" className="shadow-lg shadow-primary/30" />
           </div>
-*/}
+
           <h1 className="text-2xl font-bold text-foreground mb-1">
             VVL Enterprises
           </h1>
@@ -143,12 +142,11 @@ export default function LoginPage() {
           <p className="text-xs text-muted-foreground/70">TN-02-0194510</p>
         </div>
 
-        {/* Illustration */}
+        {/* Illustration
         <div className="px-6 text-primary">
-            <AppLogo size="xl" className="shadow-lg shadow-primary/30" />
-         {/* <FinanceIllustration />*/}
+              <FinanceIllustration />
         </div>
-
+      */}
         {/* Features badges */}
         <div className="flex justify-center gap-3 px-6 py-4">
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
