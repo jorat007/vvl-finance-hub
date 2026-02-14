@@ -165,11 +165,11 @@ function AboutTab() {
       {/* App Header */}
       <div className="text-center">
         <div className="w-20 h-20 mx-auto rounded-2xl overflow-hidden shadow-lg shadow-primary/30 mb-4">
-          <AppLogo size="xl" />
+          <AppLogo size="lg" />
         </div>
         <h1 className="text-2xl font-bold text-foreground">VVL Enterprises</h1>
         <p className="text-muted-foreground text-sm mt-1">Finance Management System</p>
-        <p className="text-xs text-muted-foreground/70 mt-1">Version 2.0 • Phase II</p>
+        <p className="text-xs text-muted-foreground/70 mt-1">Version 2.0 • Phase I</p>
       </div>
 
       {/* Illustration 
@@ -200,7 +200,7 @@ function AboutTab() {
             <Code className="w-7 h-7 text-success" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Developed By</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Product Development</p>
             <h3 className="text-lg font-bold text-foreground">JORAT Serv.</h3>
             <p className="text-sm text-muted-foreground mt-1">
               Enterprise Solutions & Digital Services
