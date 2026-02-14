@@ -30,7 +30,7 @@ import {
 const paymentSchema = z.object({
   customer_id: z.string().min(1, 'Please select a customer'),
   date: z.string().min(1, 'Date is required'),
-  amount: z.number().min(0, 'Amount must be positive'),
+  amount: z.number().gt(0, 'Amount must be greater than 0'),
   mode: z.enum(['cash', 'online']),
   status: z.enum(['paid', 'not_paid']),
   remarks: z.string().optional(),
@@ -95,7 +95,7 @@ export default function PaymentFormPage() {
 
     const parsed = paymentSchema.safeParse({
       ...formData,
-      amount: parseFloat(formData.amount) || 0,
+      amount: parseFloat(formData.amount),
       remarks: formData.remarks || undefined,
       promised_date: formData.promised_date || undefined,
     });
@@ -132,7 +132,7 @@ export default function PaymentFormPage() {
         customer_id: formData.customer_id,
         loan_id: activeLoan.id,
         date: formData.date,
-        amount: Math.round((parseFloat(formData.amount) || 0) * 100) / 100,
+        amount: Math.round(parseFloat(formData.amount) * 100) / 100,
         mode: formData.mode,
         status: formData.status,
         remarks: formData.remarks || null,
