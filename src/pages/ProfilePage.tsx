@@ -184,10 +184,10 @@ function AboutTab() {
             <AppLogo size="md" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Powered By</p>
-            <h3 className="text-lg font-bold text-foreground">VVL Enterprises</h3>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Product Management</p>
+            <h3 className="text-lg font-bold text-foreground">Elavarasan Thiyagarajan</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              License: TN-02-0194510
+              Contact: +91 9003845516
             </p>
           </div>
         </div>
@@ -206,7 +206,7 @@ function AboutTab() {
               Enterprise Solutions & Digital Services
             </p>
             <a
-              href="https://joratserv.com"
+              href="https://joratservinces.in"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-sm text-primary mt-2 hover:underline"
