@@ -42,14 +42,23 @@ Deno.serve(async (req) => {
       .eq("is_active", true)
       .single();
 
-    if (!roleData || roleData.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Only admins can create users" }), {
+    const callerRole = roleData?.role;
+    if (!callerRole || (callerRole !== "admin" && callerRole !== "manager")) {
+      return new Response(JSON.stringify({ error: "Only admins and managers can create users" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const { email, password, name, mobile, whatsapp_number, role, reporting_to } = await req.json();
+
+    // Managers can only create staff (agents)
+    if (callerRole === "manager" && role !== "agent") {
+      return new Response(JSON.stringify({ error: "Managers can only create Staff users" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (!email || !password || !name || !mobile) {
       return new Response(JSON.stringify({ error: "email, password, name, and mobile are required" }), {
