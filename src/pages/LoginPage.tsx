@@ -116,128 +116,142 @@ export default function LoginPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background relative overflow-hidden transition-colors duration-300">
-      {/* Animated gradient background */}
-      <div 
-        className="absolute inset-0 opacity-30"
-        style={{
-          background: theme === 'dark'
-            ? 'radial-gradient(ellipse at top, hsl(217 91% 30% / 0.4) 0%, transparent 50%), radial-gradient(ellipse at bottom right, hsl(142 71% 30% / 0.3) 0%, transparent 50%)'
-            : 'radial-gradient(ellipse at top, hsl(217 91% 60% / 0.2) 0%, transparent 50%), radial-gradient(ellipse at bottom right, hsl(142 71% 45% / 0.15) 0%, transparent 50%)'
-        }}
-      />
- 
-      <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Header Section */}
-        <div className="flex-shrink-0 pt-12 pb-6 px-6 text-center">
-          <div className="flex justify-center mb-6 inline-block mb-6">
-            <AppLogo size="lg" className="shadow-lg shadow-primary/30" />
+ return (
+  <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen flex flex-col lg:flex-row">
+
+      {/* ================= LEFT SIDE – LOGIN ================= */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+
+          <div className="flex justify-center mb-8">
+            <AppLogo className="w-32 h-32 shadow-2xl shadow-primary/40" />
           </div>
 
-          <h1 className="text-2xl font-bold text-foreground mb-1">
+          <h1 className="text-2xl font-bold text-center mb-1">
             VVL Enterprises
           </h1>
-          <p className="text-sm text-muted-foreground mb-1">Finance Management System</p>
-          <p className="text-xs text-muted-foreground/70">TN-02-0194510</p>
-        </div>
+          <p className="text-sm text-center text-muted-foreground mb-6">
+            Finance Management System
+          </p>
 
-        {/* Illustration
-        <div className="px-6 text-primary">
-              <FinanceIllustration />
-        </div>
-      */}
-        {/* Features badges */}
-        <div className="flex justify-center gap-3 px-6 py-4">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-            <TrendingUp className="w-3.5 h-3.5" />
-            Collections
-          </div>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-medium">
-            <Users className="w-3.5 h-3.5" />
-            Customers
-          </div>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-warning/10 text-warning text-xs font-medium">
-            <Shield className="w-3.5 h-3.5" />
-            Secure
-          </div>
-        </div>
+          <div className="bg-card rounded-2xl p-6 border shadow-lg">
+            <form onSubmit={handleSubmit} className="space-y-4">
 
-        {/* Login Form Card */}
-        <div className="flex-1 px-6 pb-8">
-          <div className="max-w-sm mx-auto">
-            <div className="bg-card rounded-2xl p-6 border border-border shadow-lg">
-              <h2 className="text-xl font-bold text-foreground mb-1">Welcome Back</h2>
-              <p className="text-sm text-muted-foreground mb-6">Sign in to continue</p>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="mobile" className="text-sm font-medium">
-                    Mobile Number
-                  </Label>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="mobile"
-                      type="tel"
-                      inputMode="numeric"
-                      placeholder="Enter 10 digit number"
-                      value={mobile}
-                      onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      className="touch-input pl-12 bg-muted/30"
-                      maxLength={10}
-                      disabled={loading}
-                    />
-                  </div>
-                  {errors.mobile && (
-                    <p className="text-destructive text-xs">{errors.mobile}</p>
-                  )}
+              {/* Mobile */}
+              <div>
+                <Label>Mobile Number</Label>
+                <div className="relative mt-1">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="tel"
+                    value={mobile}
+                    onChange={(e) =>
+                      setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))
+                    }
+                    className="pl-10"
+                    maxLength={10}
+                  />
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium">
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="touch-input pl-12 bg-muted/30"
-                      disabled={loading}
-                    />
-                  </div>
-                  {errors.password && (
-                    <p className="text-destructive text-xs">{errors.password}</p>
-                  )}
+              {/* Password */}
+              <div>
+                <Label>Password</Label>
+                <div className="relative mt-1">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
+              </div>
 
-                <Button
-                  type="submit"
-                  className="touch-button touch-button-primary w-full mt-6"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Signing in...
-                    </>
-                  ) : (
-                    'Sign In'
-                  )}
-                </Button>
-              </form>
-            </div>
-
-            <p className="text-center text-xs text-muted-foreground mt-6">
-              Contact admin if you don't have an account
-            </p>
+              <Button
+                type="submit"
+                className="w-full mt-4"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Signing In...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
           </div>
+
+          <p className="text-center text-xs text-muted-foreground mt-6">
+            Contact admin if you don’t have an account
+          </p>
         </div>
       </div>
+
+      {/* ================= RIGHT SIDE – WHY THIS APP ================= */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary/10 to-success/10 p-12 items-center">
+        <div className="max-w-lg mx-auto space-y-8">
+
+          <h2 className="text-3xl font-bold">
+            From Notebook to Complete Financial Control
+          </h2>
+
+          <p className="text-muted-foreground text-lg">
+            Stop manual errors. Track every rupee. Manage loans, staff and collections in real time.
+          </p>
+
+          {/* Feature Blocks */}
+          <div className="grid grid-cols-2 gap-6 mt-8">
+
+            <div className="bg-card p-5 rounded-xl shadow-sm border space-y-3">
+              <TrendingUp className="w-8 h-8 text-primary" />
+              <h3 className="font-semibold">Real-Time Collections</h3>
+              <p className="text-sm text-muted-foreground">
+                Instantly know today’s target, collected and pending amounts.
+              </p>
+            </div>
+
+            <div className="bg-card p-5 rounded-xl shadow-sm border space-y-3">
+              <Users className="w-8 h-8 text-success" />
+              <h3 className="font-semibold">Staff Control</h3>
+              <p className="text-sm text-muted-foreground">
+                Admin → Manager → Staff hierarchy with full visibility.
+              </p>
+            </div>
+
+            <div className="bg-card p-5 rounded-xl shadow-sm border space-y-3">
+              <Shield className="w-8 h-8 text-warning" />
+              <h3 className="font-semibold">Secure & Transparent</h3>
+              <p className="text-sm text-muted-foreground">
+                Role-based access, audit trail, and safe KYC storage.
+              </p>
+            </div>
+
+            <div className="bg-card p-5 rounded-xl shadow-sm border space-y-3">
+              <Lock className="w-8 h-8 text-primary" />
+              <h3 className="font-semibold">Smart Loan Management</h3>
+              <p className="text-sm text-muted-foreground">
+                Unique Loan IDs, ledger tracking and multi-loan lifecycle support.
+              </p>
+            </div>
+
+          </div>
+
+          <div className="pt-6">
+            <p className="text-lg font-medium text-primary">
+              Never lose track of collections again.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
     </div>
-  );
+  </div>
+);
+
 }
