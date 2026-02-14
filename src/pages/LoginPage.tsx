@@ -131,8 +131,8 @@ export default function LoginPage() {
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header Section */}
         <div className="flex-shrink-0 pt-12 pb-6 px-6 text-center">
-          <div className="relative inline-block mb-6">
-            <AppLogo size="lg" className="shadow-lg shadow-primary/30" />
+          <div className="flex justify-center mb-6 inline-block mb-6">
+            <AppLogo className="w-40 h-40 shadow-lg shadow-primary/30" />
           </div>
 
           <h1 className="text-2xl font-bold text-foreground mb-1">
