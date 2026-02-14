@@ -11,7 +11,7 @@ interface AppLogoProps {
 const sizeMap = {
   sm: 'w-8 h-8',
   md: 'w-10 h-10',
-  lg: 'w-16 h-16',
+  lg: 'w-40 h-40',
   xl: 'w-20 h-20',
 };
 
