@@ -15,52 +15,6 @@ const loginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-// SVG Illustration Component
-function FinanceIllustration() {
-  return (
-    <svg
-      viewBox="0 0 400 300"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-full max-w-xs mx-auto"
-    >
-      {/* Background circles */}
-      <circle cx="200" cy="150" r="120" fill="currentColor" fillOpacity="0.05" />
-      <circle cx="200" cy="150" r="90" fill="currentColor" fillOpacity="0.08" />
-      <circle cx="200" cy="150" r="60" fill="currentColor" fillOpacity="0.1" />
-      
-      {/* Chart bars */}
-      <rect x="120" y="180" width="30" height="60" rx="4" fill="currentColor" fillOpacity="0.3" />
-      <rect x="160" y="140" width="30" height="100" rx="4" fill="currentColor" fillOpacity="0.5" />
-      <rect x="200" y="100" width="30" height="140" rx="4" fill="currentColor" fillOpacity="0.7" />
-      <rect x="240" y="120" width="30" height="120" rx="4" fill="currentColor" fillOpacity="0.9" />
-      
-      {/* Rupee symbol */}
-      <g transform="translate(180, 50)">
-        <circle cx="20" cy="20" r="25" fill="currentColor" fillOpacity="0.2" />
-        <text x="20" y="28" textAnchor="middle" fill="currentColor" fontSize="24" fontWeight="bold">₹</text>
-      </g>
-      
-      {/* Trend line */}
-      <path
-        d="M100 200 Q150 180 180 190 T260 120 T320 100"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-        fill="none"
-        strokeDasharray="8 4"
-        opacity="0.6"
-      />
-      
-      {/* Arrow up */}
-      <g transform="translate(300, 80)">
-        <circle cx="15" cy="15" r="20" fill="currentColor" fillOpacity="0.15" />
-        <path d="M15 25 L15 8 M8 15 L15 8 L22 15" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      </g>
-    </svg>
-  );
-}
-
 export default function LoginPage() {
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
@@ -124,7 +78,10 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
 
-          <div className="flex justify-center mb-8">
+          <div className="bg-card rounded-2xl p-6 shadow-lg">
+            <form onSubmit={handleSubmit} className="space-y-4">
+
+                        <div className="flex justify-center mb-3">
             <AppLogo className="w-32 h-32 shadow-2xl shadow-primary/40" />
           </div>
 
@@ -134,10 +91,7 @@ export default function LoginPage() {
           <p className="text-sm text-center text-muted-foreground mb-6">
             Finance Management System
           </p>
-
-          <div className="bg-card rounded-2xl p-6 border shadow-lg">
-            <form onSubmit={handleSubmit} className="space-y-4">
-
+              
               {/* Mobile */}
               <div>
                 <Label>Mobile Number</Label>
@@ -183,12 +137,13 @@ export default function LoginPage() {
                   "Sign In"
                 )}
               </Button>
+                     <p className="text-center text-xs text-muted-foreground mt-6">
+            Contact admin if you don’t have an account
+          </p>
             </form>
           </div>
 
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            Contact admin if you don’t have an account
-          </p>
+   
         </div>
       </div>
 
