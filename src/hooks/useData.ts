@@ -15,6 +15,7 @@ export interface Customer {
   created_by: string;
   created_at: string;
   updated_at: string;
+  agent_name?: string;
 }
 
 export interface Payment {
@@ -50,7 +51,22 @@ export function useCustomers() {
         .order('name');
 
       if (error) throw error;
-      return data as Customer[];
+
+      // Fetch agent names for assigned_agent_ids
+      const agentIds = [...new Set((data || []).map(c => c.assigned_agent_id).filter(Boolean))];
+      let agentMap: Record<string, string> = {};
+      if (agentIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, name')
+          .in('user_id', agentIds);
+        profiles?.forEach(p => { agentMap[p.user_id] = p.name; });
+      }
+
+      return (data || []).map(c => ({
+        ...c,
+        agent_name: c.assigned_agent_id ? (agentMap[c.assigned_agent_id] || 'Unknown') : undefined,
+      })) as Customer[];
     },
     enabled: !!user,
   });
@@ -337,12 +353,25 @@ export function useDeleteCustomer() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // Use soft delete instead of hard delete to avoid FK constraint errors
       const { error } = await supabase
         .from('customers')
-        .delete()
+        .update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by: (await supabase.auth.getUser()).data.user?.id })
         .eq('id', id);
 
       if (error) throw error;
+
+      // Also soft-delete related loans
+      await supabase
+        .from('loans')
+        .update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by: (await supabase.auth.getUser()).data.user?.id })
+        .eq('customer_id', id);
+
+      // Also soft-delete related payments
+      await supabase
+        .from('payments')
+        .update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by: (await supabase.auth.getUser()).data.user?.id })
+        .eq('customer_id', id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });

@@ -2,6 +2,7 @@ import { Customer, CustomerWithBalance } from '@/hooks/useData';
 import { cn } from '@/lib/utils';
 import { MapPin, Phone, ChevronRight, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CustomerCardProps {
   customer: Customer | CustomerWithBalance;
@@ -9,9 +10,12 @@ interface CustomerCardProps {
 }
 
 export function CustomerCard({ customer, showBalance = true }: CustomerCardProps) {
+  const { user } = useAuth();
   const balance = 'balance' in customer ? customer.balance : null;
   const totalPaid = 'total_paid' in customer ? customer.total_paid : null;
   const photoUrl = (customer as any).photo_url;
+  const agentName = (customer as any).agent_name;
+  const isSelf = customer.assigned_agent_id === user?.id;
 
   return (
     <Link to={`/customers/${customer.id}`} className="block">
@@ -52,6 +56,12 @@ export function CustomerCard({ customer, showBalance = true }: CustomerCardProps
                   {customer.mobile}
                 </span>
               </div>
+              {agentName && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  Assigned for: {isSelf ? 'Self' : agentName}
+                </p>
+              )}
             </div>
           </div>
           <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />

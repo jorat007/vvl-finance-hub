@@ -1,8 +1,9 @@
 import { useCustomers, useAllPayments } from '@/hooks/useData';
+import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Phone, MapPin, Calendar, IndianRupee, AlertCircle } from 'lucide-react';
+import { Phone, MapPin, Calendar, IndianRupee, AlertCircle, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface FollowUpsListProps {
@@ -11,6 +12,7 @@ interface FollowUpsListProps {
 
 export function FollowUpsList({ date }: FollowUpsListProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: customers, isLoading: customersLoading } = useCustomers();
   const { data: payments, isLoading: paymentsLoading } = useAllPayments();
   
@@ -103,6 +105,12 @@ export function FollowUpsList({ date }: FollowUpsListProps) {
                         {customer.area}
                       </span>
                     </div>
+                    {(customer as any).agent_name && (
+                      <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        Assigned for: {customer.assigned_agent_id === user?.id ? 'Self' : (customer as any).agent_name}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
                     <div className="flex items-center gap-1 text-warning font-semibold">
@@ -152,6 +160,12 @@ export function FollowUpsList({ date }: FollowUpsListProps) {
                           {customer.area}
                         </span>
                       </div>
+                      {(customer as any).agent_name && (
+                        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          Assigned for: {customer.assigned_agent_id === user?.id ? 'Self' : (customer as any).agent_name}
+                        </p>
+                      )}
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-1 text-foreground font-semibold">
