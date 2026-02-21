@@ -210,7 +210,7 @@ export function WhatsAppLoanShareButton({ data }: { data: LoanShareData }) {
       <Button
         variant="outline"
         size="sm"
-        className="border-success text-primary hover:bg-primary/10"
+        className="border-success text-success hover:bg-success/10"
         onClick={handlePdf}
       >
         <MessageCircle className="w-4 h-4 mr-1" /> PDF
