@@ -339,32 +339,40 @@ export default function PaymentFormPage() {
             </div>
           </div>
 
-          {/* Not Paid Fields */}
-          {formData.status === 'not_paid' && (
-            <div className="form-section space-y-4 animate-fade-in">
-              <h3 className="font-semibold text-foreground">Additional Details</h3>
+        {/* Not Paid - Promised Date Only */}
+{formData.status === 'not_paid' && (
+  <div className="form-section space-y-4 animate-fade-in">
+    <h3 className="font-semibold text-foreground">Additional Details</h3>
 
-               <div className="space-y-2">
-                <Label>Promised to Pay On</Label>
-                <Input
-                  type="date"
-                  value={formData.promised_date}
-                  onChange={(e) => setFormData({ ...formData, promised_date: e.target.value })}
-                  className="touch-input"
-                />
-              </div>
-              )}
-              
-              <div className="space-y-2">
-                <Label>Remarks</Label>
-                <Textarea
-                  placeholder="Enter reason for non-payment..."
-                  value={formData.remarks}
-                  onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                  className="min-h-24 rounded-xl"
-                />
-                {errors.remarks && <p className="text-destructive text-sm">{errors.remarks}</p>}
-              </div>
+    <div className="space-y-2">
+      <Label>Promised to Pay On</Label>
+      <Input
+        type="date"
+        value={formData.promised_date}
+        onChange={(e) =>
+          setFormData({ ...formData, promised_date: e.target.value })
+        }
+        className="touch-input"
+      />
+    </div>
+  </div>
+)}
+
+{/* Remarks - Always Visible */}
+<div className="space-y-2">
+  <Label>Remarks</Label>
+  <Textarea
+    placeholder="Enter remarks..."
+    value={formData.remarks}
+    onChange={(e) =>
+      setFormData({ ...formData, remarks: e.target.value })
+    }
+    className="min-h-24 rounded-xl"
+  />
+  {errors.remarks && (
+    <p className="text-destructive text-sm">{errors.remarks}</p>
+  )}
+</div>
  
             </div>
           
