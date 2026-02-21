@@ -14,6 +14,7 @@ export function SummaryCard({ title, value, icon: Icon, variant = 'default', sub
     <div
       className={cn(
         'summary-card',
+         variant === 'info' && 'summary-card-info',
         variant === 'primary' && 'summary-card-primary',
         variant === 'success' && 'summary-card-success',
         variant === 'warning' && 'summary-card-warning'
