@@ -546,7 +546,7 @@ export default function CustomerFormPage() {
                 {errors.start_date && <p className="text-destructive text-sm">{errors.start_date}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Tenure To Date</Label>
+                <Label>Tenure To Date <span className="text-xs text-muted-foreground">(Auto-calculated)</span></Label>
                 <Input
                   type="date"
                   value={formData.end_date}
