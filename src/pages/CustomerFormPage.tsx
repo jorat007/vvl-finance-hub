@@ -43,7 +43,7 @@ const customerSchema = z.object({
 });
 
 export default function CustomerFormPage() {
-    const { id } = useParams < { id: string } > ();
+    const { id } = useParams<{ id: string }>();
     const isEdit = !!id;
     const navigate = useNavigate();
     const { toast } = useToast();
@@ -595,6 +595,7 @@ export default function CustomerFormPage() {
                         </div>
                     )}
                     {activeStep === 2 && (
+             <>
                         <div className="form-section space-y-4">
                             <h3 className="font-semibold text-foreground">Loan Details</h3>
 
@@ -741,7 +742,7 @@ export default function CustomerFormPage() {
                             })()}
                         </div>
                     )}
-
+  </>
 )}
                     {activeStep === 3 && (
                         <Accordion type="single" collapsible className="w-full">
