@@ -59,6 +59,7 @@ export default function CustomerFormPage() {
 
   const allAssignableUsers = agents?.filter((a) => a.is_active) || [];
 
+  
   const [formData, setFormData] = useState<{
     name: string;
     mobile: string;
@@ -91,7 +92,7 @@ export default function CustomerFormPage() {
     loan_amount: '',
     daily_amount: '',
     start_date: new Date().toISOString().split('T')[0],
-    end_date: '',
+    end_date: new Date(Date.now() + 100 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     status: 'active',
     assigned_agent_id: user?.id || '',
     pan_number: '',
