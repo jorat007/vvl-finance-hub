@@ -148,10 +148,7 @@ export default function PaymentFormPage() {
       return;
     }
   }
-
-
-
-      return;
+ 
     setLoading(true);
 
     try {
