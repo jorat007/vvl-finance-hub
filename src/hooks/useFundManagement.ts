@@ -29,7 +29,7 @@ export function useFundBalance() {
 
       let balance = 0;
       (data || []).forEach((t) => {
-        if (t.type === 'credit' || t.type === 'collection') {
+        if (t.type === 'credit' || t.type === 'loan_repayment') {
           balance += Number(t.amount);
         } else if (t.type === 'debit' || t.type === 'loan_disbursement') {
           balance -= Number(t.amount);
