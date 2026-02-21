@@ -13,6 +13,7 @@ import DashboardPage from "./pages/DashboardPage";
 import CustomersPage from "./pages/CustomersPage";
 import CustomerDetailPage from "./pages/CustomerDetailPage";
 import CustomerFormPage from "./pages/CustomerFormPage";
+import NewLoanPage from "./pages/NewLoanPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import PaymentFormPage from "./pages/PaymentFormPage";
 import ReportsPage from "./pages/ReportsPage";
@@ -57,6 +58,11 @@ const App = () => (
               <Route path="/customers/:id/edit" element={
                 <ProtectedRoute>
                   <CustomerFormPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/customers/:id/new-loan" element={
+                <ProtectedRoute>
+                  <NewLoanPage />
                 </ProtectedRoute>
               } />
               <Route path="/payments" element={
