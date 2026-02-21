@@ -134,7 +134,11 @@ export default function PaymentFormPage() {
   if (formData.status === 'paid' && activeLoan) {
     const enteredAmount = Math.round(parseFloat(formData.amount) * 100) / 100;
     const outstanding = Number(activeLoan.outstanding_amount || 0);
-  
+
+    console.log(enteredAmount);
+    console.log(outstanding);
+    console.log("validation" + enteredAmount > outstanding );
+    
     if (enteredAmount > outstanding) {
       toast({
         variant: 'destructive',
@@ -144,6 +148,10 @@ export default function PaymentFormPage() {
       return;
     }
   }
+
+
+
+      return;
     setLoading(true);
 
     try {
