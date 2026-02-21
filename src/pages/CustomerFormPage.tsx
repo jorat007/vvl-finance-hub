@@ -92,7 +92,7 @@ export default function CustomerFormPage() {
     loan_amount: '',
     daily_amount: '',
     start_date: new Date().toISOString().split('T')[0],
-    end_date: new Date(Date.now() + 100 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    end_date: new Date(Date.now() + 99 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     status: 'active',
     assigned_agent_id: user?.id || '',
     pan_number: '',
