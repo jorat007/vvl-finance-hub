@@ -353,6 +353,7 @@ export default function PaymentFormPage() {
                   className="touch-input"
                 />
               </div>
+              )}
               
               <div className="space-y-2">
                 <Label>Remarks</Label>
@@ -366,7 +367,7 @@ export default function PaymentFormPage() {
               </div>
  
             </div>
-          )}
+          
 
           <Button
             type="submit"
