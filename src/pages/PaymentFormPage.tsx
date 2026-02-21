@@ -139,6 +139,30 @@ export default function PaymentFormPage() {
         promised_date: formData.promised_date || null,
       });
 
+      //Newly added for Fund Balance Update
+
+       if (formData.status === 'paid') {
+          const { error: fundError } = await supabase
+            .from('fund_transactions')
+            .insert({
+              amount: Math.round(parseFloat(formData.amount) * 100) / 100,
+              type: 'loan_repayment',
+              description: `Loan repayment from ${selectedCustomer?.name}`,
+              reference_table: 'payments',
+              reference_id: result.id, // payment id
+              created_by: user!.id,
+            });
+      
+          if (fundError) {
+            toast({
+              variant: 'destructive',
+              title: 'Warning',
+              description: 'Payment saved but fund transaction failed.',
+            });
+          }
+      }
+      // Newly added ends.
+      
       toast({
         title: 'Payment Saved',
         description: 'Payment entry has been recorded successfully.',
