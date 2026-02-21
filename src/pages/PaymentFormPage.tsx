@@ -93,6 +93,11 @@ export default function PaymentFormPage() {
     e.preventDefault();
     setErrors({});
 
+     if (!formData.amount || isNaN(parseFloat(formData.amount)) || parseFloat(formData.amount) <= 0) {
+    setErrors({ amount: 'Amount must be greater than 0' });
+    return;
+  }
+    
     const parsed = paymentSchema.safeParse({
       ...formData,
       amount: parseFloat(formData.amount),
@@ -128,7 +133,8 @@ export default function PaymentFormPage() {
     setLoading(true);
 
     try {
-      await createPayment.mutateAsync({
+     // ✅ Save payment and capture result
+    const result =  await createPayment.mutateAsync({
         customer_id: formData.customer_id,
         loan_id: activeLoan.id,
         date: formData.date,
@@ -149,7 +155,7 @@ export default function PaymentFormPage() {
               type: 'loan_repayment',
               description: `Loan repayment from ${selectedCustomer?.name}`,
               reference_table: 'payments',
-              reference_id: result.id, // payment id
+              reference_id: result?.id || null, // payment id
               created_by: user!.id,
             });
       
