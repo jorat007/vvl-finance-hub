@@ -226,12 +226,19 @@ export type Database = {
           daily_amount: number
           deleted_at: string | null
           deleted_by: string | null
+          disbursal_amount: number
           end_date: string | null
           id: string
+          include_charges_in_outstanding: boolean
+          interest_rate: number
           is_deleted: boolean | null
           loan_amount: number
           loan_display_id: string | null
           loan_number: number
+          other_deduction_remarks: string | null
+          other_deductions: number
+          outstanding_amount: number
+          processing_fee_rate: number
           start_date: string
           status: string
           updated_at: string
@@ -243,12 +250,19 @@ export type Database = {
           daily_amount?: number
           deleted_at?: string | null
           deleted_by?: string | null
+          disbursal_amount?: number
           end_date?: string | null
           id?: string
+          include_charges_in_outstanding?: boolean
+          interest_rate?: number
           is_deleted?: boolean | null
           loan_amount?: number
           loan_display_id?: string | null
           loan_number?: number
+          other_deduction_remarks?: string | null
+          other_deductions?: number
+          outstanding_amount?: number
+          processing_fee_rate?: number
           start_date?: string
           status?: string
           updated_at?: string
@@ -260,12 +274,19 @@ export type Database = {
           daily_amount?: number
           deleted_at?: string | null
           deleted_by?: string | null
+          disbursal_amount?: number
           end_date?: string | null
           id?: string
+          include_charges_in_outstanding?: boolean
+          interest_rate?: number
           is_deleted?: boolean | null
           loan_amount?: number
           loan_display_id?: string | null
           loan_number?: number
+          other_deduction_remarks?: string | null
+          other_deductions?: number
+          outstanding_amount?: number
+          processing_fee_rate?: number
           start_date?: string
           status?: string
           updated_at?: string

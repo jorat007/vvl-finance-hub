@@ -9,6 +9,7 @@ import { usePermissionChecker } from '@/hooks/usePermissions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -78,6 +79,11 @@ export default function CustomerFormPage() {
     aadhaar_file_url: string;
     other_file_url: string;
     other_file_name: string;
+    interest_rate: string;
+    processing_fee_rate: string;
+    other_deductions: string;
+    other_deduction_remarks: string;
+    include_charges_in_outstanding: boolean;
   }>({
     name: '',
     mobile: '',
@@ -98,6 +104,11 @@ export default function CustomerFormPage() {
     aadhaar_file_url: '',
     other_file_url: '',
     other_file_name: '',
+    interest_rate: '4.5',
+    processing_fee_rate: '2.5',
+    other_deductions: '',
+    other_deduction_remarks: '',
+    include_charges_in_outstanding: false,
   });
 
   // Auto-calculate daily amount when loan amount or end date changes
@@ -143,6 +154,11 @@ export default function CustomerFormPage() {
         aadhaar_file_url: (existingCustomer as any).aadhaar_file_url || '',
         other_file_url: '',
         other_file_name: '',
+        interest_rate: '4.5',
+        processing_fee_rate: '2.5',
+        other_deductions: '',
+        other_deduction_remarks: '',
+        include_charges_in_outstanding: false,
       });
     }
   }, [existingCustomer, user?.id]);
@@ -312,6 +328,14 @@ export default function CustomerFormPage() {
           });
         }
 
+        // Calculate charges
+        const interestAmt = Math.round(loanAmount * (parseFloat(formData.interest_rate) || 0) / 100);
+        const processingAmt = Math.round(loanAmount * (parseFloat(formData.processing_fee_rate) || 0) / 100);
+        const otherDed = parseFloat(formData.other_deductions) || 0;
+        const totalCharges = interestAmt + processingAmt + otherDed;
+        const disbursalAmount = formData.include_charges_in_outstanding ? loanAmount : loanAmount - totalCharges;
+        const outstandingAmount = formData.include_charges_in_outstanding ? loanAmount + totalCharges : loanAmount;
+
         // Create loan record for the customer
         const { error: loanError } = await supabase.from('loans').insert({
           customer_id: customerId,
@@ -321,6 +345,13 @@ export default function CustomerFormPage() {
           end_date: formData.end_date || null,
           status: 'active',
           created_by: user!.id,
+          interest_rate: parseFloat(formData.interest_rate) || 0,
+          processing_fee_rate: parseFloat(formData.processing_fee_rate) || 0,
+          other_deductions: otherDed,
+          other_deduction_remarks: formData.other_deduction_remarks || null,
+          include_charges_in_outstanding: formData.include_charges_in_outstanding,
+          disbursal_amount: disbursalAmount,
+          outstanding_amount: outstandingAmount,
         });
 
         if (loanError) {
@@ -334,7 +365,7 @@ export default function CustomerFormPage() {
 
         // Deduct from fund on new loan creation
         const { error: fundError } = await supabase.from('fund_transactions').insert({
-          amount: loanAmount,
+          amount: disbursalAmount,
           type: 'loan_disbursement',
           description: `Loan disbursed to ${formData.name}`,
           reference_table: 'customers',
@@ -571,7 +602,63 @@ export default function CustomerFormPage() {
             )}
           </div>
 
-          {/* KYC Details - Optional */}
+          {/* Charges Section - Only for new customers */}
+          {!isEdit && (
+            <div className="form-section space-y-4">
+              <h3 className="font-semibold text-foreground">Charges & Deductions</h3>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Interest (%)</Label>
+                  <Input type="number" inputMode="decimal" value={formData.interest_rate}
+                    onChange={(e) => setFormData({ ...formData, interest_rate: e.target.value })} className="touch-input" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Processing Fee (%)</Label>
+                  <Input type="number" inputMode="decimal" value={formData.processing_fee_rate}
+                    onChange={(e) => setFormData({ ...formData, processing_fee_rate: e.target.value })} className="touch-input" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Other Deductions (₹)</Label>
+                <Input type="number" inputMode="decimal" placeholder="0" value={formData.other_deductions}
+                  onChange={(e) => setFormData({ ...formData, other_deductions: e.target.value })} className="touch-input" />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Other Deduction Remarks</Label>
+                <Input placeholder="e.g., Insurance, Processing" value={formData.other_deduction_remarks}
+                  onChange={(e) => setFormData({ ...formData, other_deduction_remarks: e.target.value })} className="touch-input" />
+              </div>
+
+              <div className="flex items-center justify-between py-2">
+                <Label className="text-sm">Include Charges in Outstanding?</Label>
+                <Switch checked={formData.include_charges_in_outstanding}
+                  onCheckedChange={(checked) => setFormData({ ...formData, include_charges_in_outstanding: checked })} />
+              </div>
+
+              {(() => {
+                const la = parseFloat(formData.loan_amount) || 0;
+                if (la <= 0) return null;
+                const intAmt = Math.round(la * (parseFloat(formData.interest_rate) || 0) / 100);
+                const procAmt = Math.round(la * (parseFloat(formData.processing_fee_rate) || 0) / 100);
+                const othDed = parseFloat(formData.other_deductions) || 0;
+                const totCharges = intAmt + procAmt + othDed;
+                const disbAmt = formData.include_charges_in_outstanding ? la : la - totCharges;
+                const outAmt = formData.include_charges_in_outstanding ? la + totCharges : la;
+                return (
+                  <div className="rounded-xl border border-border p-3 space-y-2 text-sm bg-muted/30">
+                    <div className="flex justify-between"><span className="text-muted-foreground">Gross Loan</span><span className="font-semibold">₹{la.toLocaleString('en-IN')}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Total Charges</span><span className="font-semibold text-destructive">₹{totCharges.toLocaleString('en-IN')}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Net Disbursal</span><span className="font-bold text-success">₹{disbAmt.toLocaleString('en-IN')}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Outstanding</span><span className="font-bold text-warning">₹{outAmt.toLocaleString('en-IN')}</span></div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="kyc" className="form-section border rounded-xl px-4 mb-0">
               <AccordionTrigger className="font-semibold text-foreground">
