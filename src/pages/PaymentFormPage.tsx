@@ -130,6 +130,20 @@ export default function PaymentFormPage() {
       return;
     }
 
+    // 🚨 Prevent overpayment
+  if (formData.status === 'paid' && activeLoan) {
+    const enteredAmount = Math.round(parseFloat(formData.amount) * 100) / 100;
+    const outstanding = Number(activeLoan.outstanding_amount || 0);
+  
+    if (enteredAmount > outstanding) {
+      toast({
+        variant: 'destructive',
+        title: 'Overpayment Not Allowed',
+        description: `Outstanding amount is ₹${outstanding.toLocaleString('en-IN')}. You cannot collect more than this.`,
+      });
+      return;
+    }
+  }
     setLoading(true);
 
     try {
