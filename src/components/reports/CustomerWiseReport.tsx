@@ -47,6 +47,11 @@ export function CustomerWiseReport() {
       const totalDays = Math.max(1, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
       const expectedAmount = totalDays * Number(customer.daily_amount);
 
+      const remarks = customerPayments
+      .map(p => p.remarks)
+      .filter(r => r)
+      .join(' | ');
+      
       return {
         ...customer,
         totalCollected,
@@ -54,6 +59,7 @@ export function CustomerWiseReport() {
         notPaidDays,
         expectedAmount,
         shortfall: expectedAmount - totalCollected,
+        remarks,
       };
     });
   }, [customers, payments, fromDate, toDate]);
