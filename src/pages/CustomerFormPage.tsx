@@ -852,11 +852,11 @@ export default function CustomerFormPage() {
                                 Next
                             </Button>
                         )}
-                    </div>
 
-                    <Button
+                        {activeStep == 3 && (
+            <Button
                         type="submit"
-                        className="touch-button touch-button-primary w-full"
+                        className="touch-button touch-button-success w-full"
                         disabled={loading}
                     >
                         {loading ? (
@@ -870,6 +870,10 @@ export default function CustomerFormPage() {
                             'Add Customer'
                         )}
                     </Button>
+            )}
+                    </div>
+
+                    
                 </form>
             </div>
         </MainLayout>
