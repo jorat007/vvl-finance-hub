@@ -222,8 +222,8 @@ export default function CustomerDetailPage() {
   const renderLoanCard = (loan: any) => {
     const isActive = loan.status === 'active';
     const charges = getLoanChargesBreakdown(loan);
-    const disbursalAmt = Number(loan.disbursal_amount) || Number(loan.loan_amount);
-    const outstandingAmt = Number(loan.outstanding_amount) || Number(loan.loan_amount);
+    const disbursalAmt = Number(loan.disbursal_amount);
+    const outstandingAmt = Number(loan.outstanding_amount);
 
     return (
       <div key={loan.id} className={cn('p-4 rounded-xl border', isActive ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted/30')}>
@@ -283,7 +283,7 @@ export default function CustomerDetailPage() {
         </div>
 
         {/* Close Loan button */}
-        {isActive && (isAdmin || isManager) && (
+        {isActive && outstandingAmt.toLocaleString('en-IN') ==="0" && (isAdmin || isManager) && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="outline" size="sm" className="w-full mt-2 border-warning text-warning hover:bg-warning/10" disabled={closingLoan}>
