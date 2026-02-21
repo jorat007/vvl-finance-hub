@@ -189,6 +189,8 @@ export function WhatsAppReceiptButton({ payment, agentName }: WhatsAppReceiptBut
 
   return (
     <div className="flex gap-1">
+    
+      {/*  
       <Button
         variant="ghost"
         size="icon"
@@ -201,6 +203,8 @@ export function WhatsAppReceiptButton({ payment, agentName }: WhatsAppReceiptBut
       >
         <MessageCircle className="w-4 h-4" />
       </Button>
+ */}
+      
       <Button
         variant="ghost"
         size="icon"
@@ -211,7 +215,7 @@ export function WhatsAppReceiptButton({ payment, agentName }: WhatsAppReceiptBut
         }}
         title="Generate PDF receipt"
       >
-        <FileText className="w-4 h-4" />
+        <MessageCircle className="w-4 h-4" />
       </Button>
     </div>
   );
