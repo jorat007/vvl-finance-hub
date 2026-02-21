@@ -208,7 +208,7 @@ export function WhatsAppReceiptButton({ payment, agentName }: WhatsAppReceiptBut
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+        className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
         onClick={(e) => {
           e.stopPropagation();
           handlePdfReceipt();
