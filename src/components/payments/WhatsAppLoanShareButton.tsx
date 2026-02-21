@@ -28,40 +28,39 @@ function generateLoanShareText(data: LoanShareData) {
   const endFormatted = data.endDate ? new Date(data.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A';
 
   return [
-    `━━━━━━━━━━━━━━━━━━━━`,
     `   🏢 *VVL ENTERPRISES*`,
     `   _Finance Management_`,
     `   License: TN-02-0194510`,
-    `━━━━━━━━━━━━━━━━━━━━`,
+    ``,
     ``,
     `📋 *LOAN DETAILS*`,
     ``,
-    `━━━ Customer Details ━━━`,
+    `Customer Details`,
     `👤 Name: *${data.customerName}*`,
     `📱 Mobile: ${data.mobile}`,
     ``,
-    `━━━ Loan Information ━━━`,
+    `Loan Information`,
     `🔖 Loan ID: *${data.loanDisplayId}*`,
     `💰 Gross Loan Amount: ₹${data.loanAmount.toLocaleString('en-IN')}`,
     ``,
-    `━━━ Charges Breakdown ━━━`,
+    `Charges Breakdown`,
     `📊 Interest (${data.interestRate}%): ₹${interestAmt.toLocaleString('en-IN')}`,
     `📊 Processing Fee (${data.processingFeeRate}%): ₹${processingAmt.toLocaleString('en-IN')}`,
     data.otherDeductions > 0 ? `📊 Other Deductions: ₹${data.otherDeductions.toLocaleString('en-IN')}` : '',
     `📊 *Total Charges: ₹${totalCharges.toLocaleString('en-IN')}*`,
     ``,
-    `━━━ Settlement ━━━━━━━━━`,
+    `Settlement`,
     `💵 Net Disbursal: *₹${data.disbursalAmount.toLocaleString('en-IN')}*`,
     `💰 Outstanding Amount: *₹${data.outstandingAmount.toLocaleString('en-IN')}*`,
     `📅 Daily Installment: ₹${data.dailyAmount.toLocaleString('en-IN')}`,
     ``,
-    `━━━ Tenure ━━━━━━━━━━━━`,
+    `Tenure`,
     `📅 From: ${startFormatted}`,
     `📅 To: ${endFormatted}`,
     ``,
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `  _VVL Enterprises_`,
-    `━━━━━━━━━━━━━━━━━━━━`,
+    ``,
+    `  VVL Enterprises `,
+    ``,
   ].filter(Boolean).join('\n');
 }
 
@@ -211,10 +210,10 @@ export function WhatsAppLoanShareButton({ data }: { data: LoanShareData }) {
       <Button
         variant="outline"
         size="sm"
-        className="border-primary text-primary hover:bg-primary/10"
+        className="border-success text-primary hover:bg-primary/10"
         onClick={handlePdf}
       >
-        <FileText className="w-4 h-4 mr-1" /> Loan PDF
+        <MessageCircle className="w-4 h-4 mr-1" /> PDF
       </Button>
       <Button
         variant="outline"
@@ -222,7 +221,7 @@ export function WhatsAppLoanShareButton({ data }: { data: LoanShareData }) {
         className="border-success text-success hover:bg-success/10"
         onClick={handleWhatsApp}
       >
-        <MessageCircle className="w-4 h-4 mr-1" /> WhatsApp
+        <MessageCircle className="w-4 h-4 mr-1" /> Message
       </Button>
     </div>
   );
