@@ -373,10 +373,6 @@ export default function PaymentFormPage() {
     <p className="text-destructive text-sm">{errors.remarks}</p>
   )}
 </div>
- 
-            </div>
-          
-
           <Button
             type="submit"
             className="touch-button touch-button-primary w-full"
