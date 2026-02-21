@@ -72,17 +72,17 @@ export function CustomerWiseReport() {
   const handleExportExcel = () => {
     if (filteredData.length === 0) return;
 
-    const headers = ['Name', 'Mobile', 'Area', 'Daily Amount', 'Expected', 'Collected', 'Shortfall', 'Paid Days', 'Not Paid Days'];
+    const headers = ['Name', 'Mobile', 'Daily Amount', 'Expected', 'Collected', 'Shortfall', 'Paid Days', 'Not Paid Days' ,'Remarks' ];
     const rows = filteredData.map((c) => [
       c.name,
       c.mobile,
-      c.area,
       c.daily_amount,
       c.expectedAmount,
       c.totalCollected,
       c.shortfall,
       c.paidDays,
       c.notPaidDays,
+      c.remarks,
     ]);
 
     const csvContent = [
