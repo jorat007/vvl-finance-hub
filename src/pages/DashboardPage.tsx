@@ -42,6 +42,7 @@ export default function DashboardPage() {
                 title="Monthly Collection"
                 value={stats?.monthlyCollection || 0}
                 icon={TrendingUp}
+                variant="info"
               />
               <SummaryCard
                 title="Pending Balance"
