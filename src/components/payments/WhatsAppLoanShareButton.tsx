@@ -213,16 +213,9 @@ export function WhatsAppLoanShareButton({ data }: { data: LoanShareData }) {
         className="border-success text-success hover:bg-success/10"
         onClick={handlePdf}
       >
-        <MessageCircle className="w-4 h-4 mr-1" /> PDF
+        <MessageCircle className="w-4 h-4 mr-1" /> WhatsApp
       </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        className="border-success text-success hover:bg-success/10"
-        onClick={handleWhatsApp}
-      >
-        <MessageCircle className="w-4 h-4 mr-1" /> Message
-      </Button>
+   
     </div>
   );
 }
