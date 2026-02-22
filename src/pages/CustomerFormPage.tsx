@@ -143,7 +143,7 @@ export default function CustomerFormPage() {
                 loan_amount: existingCustomer.loan_amount.toString(),
                 daily_amount: existingCustomer.daily_amount.toString(),
                 start_date: existingCustomer.start_date,
-                end_date: existingCustomer.end_date,
+                end_date: (existingCustomer as any).end_date || '',
                 status: existingCustomer.status,
                 assigned_agent_id: existingCustomer.assigned_agent_id || user?.id || '',
                 pan_number: (existingCustomer as any).pan_number || '',
