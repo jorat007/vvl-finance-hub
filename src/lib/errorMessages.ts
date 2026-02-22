@@ -5,8 +5,12 @@
 export function getUserFriendlyError(error: unknown): string {
   const message = (error as any)?.message?.toLowerCase() || '';
 
+  // User management - duplicate mobile/email
+  if (message.includes('already been registered') || message.includes('already exists')) {
+    return 'This mobile number is already registered. Please use a different mobile number.';
+  }
   if (message.includes('duplicate') && message.includes('mobile')) {
-    return 'This mobile number is already registered.';
+    return 'This mobile number is already registered. Please use a different mobile number.';
   }
   if (message.includes('duplicate')) {
     return 'A record with this information already exists.';

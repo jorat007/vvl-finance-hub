@@ -331,6 +331,11 @@ export default function PaymentFormPage() {
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                 className="touch-input"
               />
+              {formData.date && (
+                <p className="text-sm font-medium text-foreground">
+                  {new Date(formData.date + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </p>
+              )}
               {errors.date && <p className="text-destructive text-sm">{errors.date}</p>}
             </div>
 

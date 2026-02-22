@@ -212,10 +212,17 @@ export function UserManagement() {
       setIsDialogOpen(false);
       resetForm();
     } catch (error: unknown) {
-      const { getUserFriendlyError } = await import('@/lib/errorMessages');
+      const errMsg = (error as any)?.message || '';
+      let description: string;
+      if (errMsg.includes('already exists') || errMsg.includes('already been registered')) {
+        description = 'This mobile number is already registered. Please use a different mobile number.';
+      } else {
+        const { getUserFriendlyError } = await import('@/lib/errorMessages');
+        description = getUserFriendlyError(error);
+      }
       toast({
         title: 'Error',
-        description: getUserFriendlyError(error),
+        description,
         variant: 'destructive',
       });
     } finally {
