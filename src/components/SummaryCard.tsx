@@ -5,7 +5,7 @@ interface SummaryCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
-  variant?: 'default' | 'primary' | 'success' | 'warning';
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'info';
   subtitle?: string;
 }
 

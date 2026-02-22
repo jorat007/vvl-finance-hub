@@ -137,7 +137,7 @@ export default function PaymentFormPage() {
 
     console.log(enteredAmount);
     console.log(outstanding);
-    console.log("validation" + enteredAmount > outstanding );
+    console.log("validation", enteredAmount > outstanding);
     
     if (enteredAmount > outstanding) {
       toast({
