@@ -107,7 +107,7 @@ export default function CustomerFormPage() {
         other_file_url: '',
         other_file_name: '',
         interest_rate: '12.5',
-        processing_fee_rate: '0',
+        processing_fee_rate: '2.5',
         other_deductions: '',
         other_deduction_remarks: '',
         include_charges_in_outstanding: false,
