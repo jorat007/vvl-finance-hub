@@ -10,23 +10,14 @@ function formatLocalDate(date: Date): string {
 }
 
 /**
- * Returns timezone-aware ISO range boundaries for a local date range.
- * This ensures that timestamptz columns in the DB are compared correctly
- * against local calendar days, not UTC midnight.
+ * Returns date range boundaries for DATE columns.
+ * `payments.date` and `loans.start_date` are DATE fields, so passing
+ * plain YYYY-MM-DD strings avoids timezone shift/casting issues.
  */
 function getLocalDateRange(fromDateStr: string, toDateStr: string) {
-  const [fy, fm, fd] = fromDateStr.split('-').map(Number);
-  const localDate = new Date(fy, fm - 1, fd);
-  const offset = localDate.getTimezoneOffset();
-  const sign = offset <= 0 ? '+' : '-';
-  const absOffset = Math.abs(offset);
-  const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, '0');
-  const offsetMins = String(absOffset % 60).padStart(2, '0');
-  const tzString = `${sign}${offsetHours}:${offsetMins}`;
-
   return {
-    from: `${fromDateStr}T00:00:00${tzString}`,
-    to: `${toDateStr}T23:59:59.999${tzString}`,
+    from: fromDateStr,
+    to: toDateStr,
   };
 }
 
