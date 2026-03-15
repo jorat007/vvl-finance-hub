@@ -46,7 +46,7 @@ export function useRoleBasedDashboardStats(fromDate?: string, toDate?: string) {
       // Get customers for these agents
       let customersQuery = supabase
         .from('customers')
-        .select('id, loan_amount, daily_amount, status, assigned_agent_id')
+        .select('id, assigned_agent_id')
         .eq('is_deleted', false);
 
       if (role !== 'admin') {
@@ -56,14 +56,15 @@ export function useRoleBasedDashboardStats(fromDate?: string, toDate?: string) {
       const { data: customers } = await customersQuery;
 
       const customerIds = customers?.map((c) => c.id) || [];
-      const totalCustomers = customers?.filter(c => c.status === 'active').length || 0;
+      // Total stored customers (excluding soft-deleted)
+      const totalCustomers = customers?.length || 0;
 
       // If non-admin has no customers, return zeros
       if (role !== 'admin' && customerIds.length === 0) {
         return { totalCustomers: 0, totalCollections: 0, totalDisbursal: 0, pendingBalance: 0 };
       }
 
-      // Get collections (paid payments) in date range
+      // Total collection (paid payments) in selected date range
       let collectionsQuery = supabase
         .from('payments')
         .select('amount')
@@ -79,7 +80,7 @@ export function useRoleBasedDashboardStats(fromDate?: string, toDate?: string) {
       const { data: collectionPayments } = await collectionsQuery;
       const totalCollections = collectionPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
-      // Get total disbursal (loans disbursed) in date range
+      // Total disbursed (loan disbursal amount) in selected date range
       let disbursalQuery = supabase
         .from('loans')
         .select('disbursal_amount')
@@ -94,22 +95,19 @@ export function useRoleBasedDashboardStats(fromDate?: string, toDate?: string) {
       const { data: loans } = await disbursalQuery;
       const totalDisbursal = loans?.reduce((sum, l) => sum + Number(l.disbursal_amount), 0) || 0;
 
-      // Pending balance (all-time: total loan amounts - total paid)
-      const totalLoans = customers?.reduce((sum, c) => sum + Number(c.loan_amount), 0) || 0;
-
-      let paidQuery = supabase
-        .from('payments')
-        .select('amount')
-        .eq('status', 'paid')
+      // Pending recovery amount (sum of outstanding amount)
+      let outstandingQuery = supabase
+        .from('loans')
+        .select('outstanding_amount')
         .eq('is_deleted', false);
 
       if (role !== 'admin' && customerIds.length > 0) {
-        paidQuery = paidQuery.in('customer_id', customerIds);
+        outstandingQuery = outstandingQuery.in('customer_id', customerIds);
       }
 
-      const { data: allPaid } = await paidQuery;
-      const totalPaid = allPaid?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
-      const pendingBalance = totalLoans - totalPaid;
+      const { data: outstandingLoans } = await outstandingQuery;
+      const pendingBalance =
+        outstandingLoans?.reduce((sum, loan) => sum + Number(loan.outstanding_amount), 0) || 0;
 
       return {
         totalCustomers,
