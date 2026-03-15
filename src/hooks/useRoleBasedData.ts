@@ -176,10 +176,12 @@ export function useRoleBasedDailyCollections(fromDate?: string, toDate?: string)
       return days.map((date) => {
         const dayPayments = data?.filter((p) => p.date === date) || [];
         const total = dayPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+        const [y, m, d] = date.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
         return {
           date: days.length <= 7
-            ? new Date(date).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
-            : new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
+            ? dateObj.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+            : dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
           amount: total,
         };
       });
