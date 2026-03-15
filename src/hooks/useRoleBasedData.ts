@@ -122,11 +122,13 @@ export function useRoleBasedDailyCollections(fromDate?: string, toDate?: string)
 
       // Build array of days between from and to
       const days: string[] = [];
-      const startDate = new Date(from);
-      const endDate = new Date(to);
+      const [sy, sm, sd] = from.split('-').map(Number);
+      const [ey, em, ed] = to.split('-').map(Number);
+      const startDate = new Date(sy, sm - 1, sd);
+      const endDate = new Date(ey, em - 1, ed);
       const current = new Date(startDate);
       while (current <= endDate) {
-        days.push(current.toISOString().split('T')[0]);
+        days.push(formatLocalDate(current));
         current.setDate(current.getDate() + 1);
       }
 
