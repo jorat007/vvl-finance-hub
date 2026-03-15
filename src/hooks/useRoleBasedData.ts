@@ -146,12 +146,16 @@ export function useRoleBasedDailyCollections(fromDate?: string, toDate?: string)
           .eq('is_deleted', false);
         customerIds = customers?.map((c) => c.id) || [];
         if (customerIds.length === 0) {
-          return days.map((date) => ({
-            date: days.length <= 7
-              ? new Date(date).toLocaleDateString('en-US', { weekday: 'short' })
-              : new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
-            amount: 0,
-          }));
+          return days.map((date) => {
+            const [y, m, d] = date.split('-').map(Number);
+            const dateObj = new Date(y, m - 1, d);
+            return {
+              date: days.length <= 7
+                ? dateObj.toLocaleDateString('en-US', { weekday: 'short' })
+                : dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
+              amount: 0,
+            };
+          });
         }
       }
 
