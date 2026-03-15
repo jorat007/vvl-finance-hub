@@ -182,11 +182,13 @@ export function useRoleBasedDailyCollections(fromDate?: string, toDate?: string)
         }
       }
 
+      const range = getLocalDateRange(from, to);
+
       let query = supabase
         .from('payments')
         .select('date, amount')
-        .gte('date', from)
-        .lte('date', to)
+        .gte('date', range.from)
+        .lte('date', range.to)
         .eq('status', 'paid')
         .eq('is_deleted', false);
 
