@@ -11,13 +11,20 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function DashboardPage() {
   const today = new Date();
   const [fromDate, setFromDate] = useState<Date>(today);
   const [toDate, setToDate] = useState<Date>(today);
 
-  const fromStr = fromDate.toISOString().split('T')[0];
-  const toStr = toDate.toISOString().split('T')[0];
+  const fromStr = formatLocalDate(fromDate);
+  const toStr = formatLocalDate(toDate);
 
   const { data: stats, isLoading: statsLoading } = useRoleBasedDashboardStats(fromStr, toStr);
   const { data: dailyData, isLoading: dailyLoading } = useRoleBasedDailyCollections(fromStr, toStr);

@@ -111,7 +111,7 @@ export function useRoleBasedDashboardStats(fromDate?: string, toDate?: string) {
 export function useRoleBasedDailyCollections(fromDate?: string, toDate?: string) {
   const { user, role } = useAuth();
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatLocalDate(new Date());
   const from = fromDate || today;
   const to = toDate || today;
 
