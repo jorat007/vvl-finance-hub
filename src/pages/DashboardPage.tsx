@@ -108,6 +108,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        <p className="text-sm text-muted-foreground">
+          Selected dates: {format(fromDate, "dd-MMM-yyyy")} to {format(toDate, "dd-MMM-yyyy")}
+        </p>
+
         {/* Summary Cards */}
         <div className="grid grid-cols-2 gap-3">
           {statsLoading ? (
