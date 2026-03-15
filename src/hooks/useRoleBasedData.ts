@@ -2,6 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 /**
  * Role-based dashboard stats with date range support:
  * Admin: all data
@@ -12,7 +19,7 @@ export function useRoleBasedDashboardStats(fromDate?: string, toDate?: string) {
   const { user, role } = useAuth();
 
   // Default to today if no dates provided
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatLocalDate(new Date());
   const from = fromDate || today;
   const to = toDate || today;
 
@@ -104,7 +111,7 @@ export function useRoleBasedDashboardStats(fromDate?: string, toDate?: string) {
 export function useRoleBasedDailyCollections(fromDate?: string, toDate?: string) {
   const { user, role } = useAuth();
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatLocalDate(new Date());
   const from = fromDate || today;
   const to = toDate || today;
 
@@ -115,11 +122,13 @@ export function useRoleBasedDailyCollections(fromDate?: string, toDate?: string)
 
       // Build array of days between from and to
       const days: string[] = [];
-      const startDate = new Date(from);
-      const endDate = new Date(to);
+      const [sy, sm, sd] = from.split('-').map(Number);
+      const [ey, em, ed] = to.split('-').map(Number);
+      const startDate = new Date(sy, sm - 1, sd);
+      const endDate = new Date(ey, em - 1, ed);
       const current = new Date(startDate);
       while (current <= endDate) {
-        days.push(current.toISOString().split('T')[0]);
+        days.push(formatLocalDate(current));
         current.setDate(current.getDate() + 1);
       }
 
@@ -137,12 +146,16 @@ export function useRoleBasedDailyCollections(fromDate?: string, toDate?: string)
           .eq('is_deleted', false);
         customerIds = customers?.map((c) => c.id) || [];
         if (customerIds.length === 0) {
-          return days.map((date) => ({
-            date: days.length <= 7
-              ? new Date(date).toLocaleDateString('en-US', { weekday: 'short' })
-              : new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
-            amount: 0,
-          }));
+          return days.map((date) => {
+            const [y, m, d] = date.split('-').map(Number);
+            const dateObj = new Date(y, m - 1, d);
+            return {
+              date: days.length <= 7
+                ? dateObj.toLocaleDateString('en-US', { weekday: 'short' })
+                : dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
+              amount: 0,
+            };
+          });
         }
       }
 
@@ -163,10 +176,12 @@ export function useRoleBasedDailyCollections(fromDate?: string, toDate?: string)
       return days.map((date) => {
         const dayPayments = data?.filter((p) => p.date === date) || [];
         const total = dayPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+        const [y, m, d] = date.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
         return {
           date: days.length <= 7
-            ? new Date(date).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
-            : new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
+            ? dateObj.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+            : dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
           amount: total,
         };
       });
