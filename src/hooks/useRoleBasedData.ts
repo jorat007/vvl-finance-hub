@@ -47,6 +47,8 @@ export function useRoleBasedDashboardStats(fromDate?: string, toDate?: string) {
   return useQuery({
     queryKey: ['dashboard-stats-role', user?.id, role, from, to],
     queryFn: async () => {
+      const range = getLocalDateRange(from, to);
+
       // Get agent IDs based on role hierarchy
       const agentIds = await getHierarchyAgentIds(user!.id, role!);
 
@@ -74,8 +76,8 @@ export function useRoleBasedDashboardStats(fromDate?: string, toDate?: string) {
       let collectionsQuery = supabase
         .from('payments')
         .select('amount')
-        .gte('date', from)
-        .lte('date', to)
+        .gte('date', range.from)
+        .lte('date', range.to)
         .eq('status', 'paid')
         .eq('is_deleted', false);
 
@@ -90,8 +92,8 @@ export function useRoleBasedDashboardStats(fromDate?: string, toDate?: string) {
       let disbursalQuery = supabase
         .from('loans')
         .select('disbursal_amount')
-        .gte('start_date', from)
-        .lte('start_date', to)
+        .gte('start_date', range.from)
+        .lte('start_date', range.to)
         .eq('is_deleted', false);
 
       if (role !== 'admin' && customerIds.length > 0) {
